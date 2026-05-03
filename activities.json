@@ -1,0 +1,40 @@
+[
+  {
+    "id": "1",
+    "title": "青云山徒步",
+    "type": "徒步",
+    "date": "2026/07/12 07:30",
+    "location": "青云山区",
+    "maxParticipants": 6,
+    "currentParticipants": 6,
+    "participants": [],
+    "description": "一起徒步青云山，感受自然风光"
+  },
+  {
+    "id": "1777712353164",
+    "title": "夜跑奥体",
+    "type": "跑步",
+    "date": "2026/07/18 20:00",
+    "location": "安丘奥体中心",
+    "maxParticipants": 10,
+    "currentParticipants": 2,
+    "participants": [
+      "17864459667"
+    ],
+    "description": "每周三晚奥体夜跑"
+  },
+  {
+    "id": "1777716034084",
+    "title": "测试活动",
+    "type": "徒步",
+    "date": "2026/08/01 09:00",
+    "location": "测试地点",
+    "maxParticipants": 5,
+    "currentParticipants": 1,
+    "participants": [
+      "17864459667"
+    ],
+    "description": "这是一个测试活动",
+    "creator": "13800138001"
+  }
+]

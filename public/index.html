@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>搭子行 | Pre Release</title>
+
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: "PingFang SC", "Microsoft YaHei", -apple-system, sans-serif;
+      background: linear-gradient(180deg, #f8f9ff 0%, #f0f1ff 40%, #eef0ff 100%);
+      color: #111;
+      overflow-x: hidden;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    img { max-width: 100%; display: block; }
+
+    /* ---------- 背景装饰 ---------- */
+    .topo-right, .topo-left {
+      position: absolute; pointer-events: none; opacity: 0.12; z-index: 0;
+    }
+    .topo-right { right: 0; top: 80px; width: 55%; }
+    .topo-left  { left: 0; bottom: 120px; width: 45%; transform: rotate(180deg); }
+
+    /* ---------- 容器 ---------- */
+    .container {
+      width: 100%; max-width: 480px; margin: 0 auto; padding: 0 20px;
+      position: relative; z-index: 2;
+    }
+
+    /* ---------- Header ---------- */
+    header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 18px 0 14px;
+    }
+    .logo img { height: 32px; width: auto; }
+
+    .nav-right {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .pill {
+      padding: 6px 14px; border-radius: 999px;
+      border: 1px solid #d9dcff; color: #8b8fe8;
+      font-size: 13px; font-weight: 600;
+      background: rgba(255,255,255,0.8);
+    }
+    .launch-text { color: #888; font-size: 13px; }
+    .login-btn {
+      padding: 8px 18px; border-radius: 10px;
+      background: linear-gradient(135deg, #8b8fe8, #6e72d6);
+      color: #fff; text-decoration: none;
+      font-size: 14px; font-weight: 700;
+      box-shadow: 0 4px 14px rgba(107,111,216,0.3);
+      white-space: nowrap;
+    }
+
+    /* ---------- Hero ---------- */
+    .hero {
+      display: flex; flex-direction: column; align-items: center;
+      text-align: center; padding: 24px 0 28px;
+    }
+    .hero-left { width: 100%; }
+    .hero-left .pill { display: inline-block; margin-bottom: 14px; }
+    .hero-title {
+      font-size: 40px; font-weight: 900;
+      line-height: 1.08; letter-spacing: -1px;
+    }
+    .gradient-text {
+      background: linear-gradient(to bottom, #8b8fe8 0%, #7f83f3 35%, #7f8594 100%);
+      -webkit-background-clip: text; background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .divider {
+      width: 48px; height: 4px; background: #9ea6ff;
+      border-radius: 999px; margin: 20px auto;
+    }
+    .hero-desc {
+      font-size: 17px; line-height: 1.8; color: #555;
+    }
+    .cta-btn {
+      margin-top: 28px; display: inline-block;
+      background: linear-gradient(135deg, #111, #000);
+      color: #fff; text-decoration: none;
+      padding: 18px 36px; border-radius: 18px;
+      font-size: 19px; font-weight: 700;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+    }
+    .hero-right { margin-top: 24px; }
+    .mockup { width: 260px; filter: drop-shadow(0 20px 40px rgba(0,0,0,0.15)); }
+
+    /* ---------- Features ---------- */
+    .features {
+      background: rgba(255,255,255,0.8);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.6);
+      border-radius: 24px;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.04);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      margin-bottom: 28px;
+      overflow: hidden;
+    }
+    .feature {
+      padding: 28px 18px; text-align: center;
+      border-right: 1px solid #f0f0f0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .feature:nth-child(2n) { border-right: none; }
+    .feature:nth-child(n+3) { border-bottom: none; }
+    .feature-icon { font-size: 32px; margin-bottom: 10px; }
+    .feature h3 { font-size: 17px; font-weight: 800; margin-bottom: 6px; }
+    .feature p { color: #777; font-size: 13px; line-height: 1.6; }
+
+    /* ---------- Pre-Release ---------- */
+    .pre-release {
+      background: rgba(255,255,255,0.8);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.6);
+      border-radius: 24px;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.04);
+      margin-bottom: 32px;
+      overflow: hidden;
+    }
+    .pre-left, .pre-right { padding: 28px 24px; }
+    .pre-left {
+      border-bottom: 1px solid #f0f0f0;
+      text-align: center;
+    }
+    .pre-tag { color: #8b8fe8; font-size: 15px; font-weight: 700; margin-bottom: 10px; }
+    .pre-title { font-size: 42px; font-weight: 900; line-height: 1.15; }
+    .pre-date { font-size: 32px; color: #a3a8ff; font-weight: 800; margin-top: 10px; }
+    .pre-school { font-size: 22px; font-weight: 800; margin-top: 8px; }
+    .pre-desc { font-size: 15px; color: #666; line-height: 1.7; margin-top: 8px; }
+    .pre-right h3 { font-size: 24px; text-align: center; margin-bottom: 12px; }
+    .pre-right p { font-size: 15px; color: #666; text-align: center; margin-bottom: 18px; line-height: 1.6; }
+
+    .form-box {
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .form-box input {
+      width: 100%; padding: 16px 18px;
+      font-size: 16px; border: 1px solid #ddd;
+      border-radius: 14px; outline: none;
+      background: #fff; font-family: inherit;
+    }
+    .form-box button {
+      width: 100%; padding: 16px;
+      background: #111; color: #fff;
+      border: none; border-radius: 14px;
+      font-size: 17px; font-weight: 700;
+      cursor: pointer; font-family: inherit;
+    }
+    .small-note {
+      margin-top: 14px; color: #999; font-size: 13px;
+      line-height: 1.6; text-align: center;
+    }
+
+    /* ---------- Footer ---------- */
+    footer {
+      text-align: center; padding-bottom: 36px;
+      color: #999; font-size: 13px; line-height: 1.8;
+    }
+  </style>
+</head>
+<body>
+
+  <img src="./assets/topo-lines.png" class="topo-right" alt="">
+  <img src="./assets/topo-lines.png" class="topo-left" alt="">
+
+  <div class="container">
+
+    <header>
+      <div class="logo"><img src="./assets/logo-full.png" alt="搭子行"></div>
+      <div class="nav-right">
+        <span class="pill">Pre Release</span>
+        <a href="/login.html" class="login-btn">登录</a>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="hero-left">
+        <div class="pill">Pre Release</div>
+        <h1 class="hero-title">
+          重新定义<br>你的线下<br>
+          <span class="gradient-text">连接方式</span>
+        </h1>
+        <div class="divider"></div>
+        <p class="hero-desc">
+          用地图发现附近的出行搭子，<br>找到同频的人，一起探索城市。
+        </p>
+        <a href="/login.html" class="cta-btn">立即加入 →</a>
+      </div>
+      <div class="hero-right">
+        <img src="./assets/phone-mockup-main.png" class="mockup" alt="搭子行手机预览">
+      </div>
+    </section>
+
+    <section class="features">
+      <div class="feature">
+        <div class="feature-icon">📍</div>
+        <h3>发现活动</h3>
+        <p>地图浏览附近<br>精彩活动</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">👥</div>
+        <h3>找到搭子</h3>
+        <p>兴趣标签匹配<br>同频伙伴</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">💬</div>
+        <h3>在线交流</h3>
+        <p>提前认识<br>相遇更自然</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🛡️</div>
+        <h3>安全保障</h3>
+        <p>同校认证<br>出行放心</p>
+      </div>
+    </section>
+
+    <section class="pre-release">
+      <div class="pre-left">
+        <div class="pre-tag">Pre Release</div>
+        <h2 class="pre-title">即将上线</h2>
+        <div class="pre-date">2026 · 07月</div>
+        <div class="pre-school">安丘二中专属平台</div>
+        <div class="divider"></div>
+        <p class="pre-desc">正式上线前，加入我们获取最新动态</p>
+      </div>
+      <div class="pre-right">
+        <h3>成为首批体验者</h3>
+        <p>输入你的学号，获取上线通知和专属体验资格</p>
+        <form class="form-box">
+          <input type="text" placeholder="请输入你的学号">
+          <button type="submit">立即加入</button>
+        </form>
+        <div class="small-note">仅限安丘二中学生使用，<br>我们将通过学号验证你的身份</div>
+      </div>
+    </section>
+
+    <footer>
+      <p>© 2026 搭子行 · 一起出发，遇见有趣的人</p>
+      <p>Pre Release · 正式上线 2026年7月</p>
+    </footer>
+
+  </div>
+
+  <script>
+    (function () {
+      const form = document.querySelector('.form-box');
+      const input = form.querySelector('input');
+      const btn = form.querySelector('button');
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const studentId = input.value.trim();
+        if (!studentId) { alert('请输入学号'); return; }
+
+        btn.disabled = true;
+        btn.textContent = '提交中...';
+
+        try {
+          const res = await fetch('/submit-student-id', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ studentId })
+          });
+          const json = await res.json();
+          if (json.success) { input.value = ''; }
+          alert(json.message);
+        } catch (err) {
+          alert('网络错误，请稍后再试');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = '立即加入';
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>搭子行 · 活动中心</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #f2f3f7;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      min-height: 100vh; min-height: 100dvh;
+      -webkit-tap-highlight-color: transparent;
+      padding-bottom: 80px;
+    }
+
+    .main-content {
+      width: 100%; max-width: 480px; margin: 0 auto;
+      padding: 18px 20px 10px;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+
+    /* ---------- Header ---------- */
+    .app-header {
+      display: flex; justify-content: space-between; align-items: baseline;
+      margin-top: 4px;
+    }
+    .app-title { font-size: 28px; font-weight: 700; color: #121212; letter-spacing: -0.5px; }
+    .user-area { display: flex; align-items: center; gap: 10px; }
+    .user-badge {
+      font-size: 14px; color: #6b7280; background: #f3f4f6;
+      padding: 4px 12px; border-radius: 20px; font-weight: 500;
+    }
+    .logout-btn {
+      padding: 6px 14px; border: 1px solid #e5e7eb; border-radius: 20px;
+      background: #fff; font-size: 13px; cursor: pointer; color: #6b7280;
+      font-family: inherit; font-weight: 500;
+    }
+
+    /* ---------- Tabs ---------- */
+    .tabs {
+      display: flex; gap: 10px;
+      border-bottom: 1px solid #f0f0f0; padding-bottom: 12px;
+    }
+    .tab {
+      font-size: 15px; font-weight: 500;
+      color: #6b7280; padding: 6px 16px;
+      border-radius: 20px; background: transparent;
+      cursor: pointer; transition: 0.2s;
+      border: none; font-family: inherit;
+    }
+    .tab.active { background: #1f1f1f; color: white; font-weight: 600; }
+
+    /* ---------- Msg ---------- */
+    .msg {
+      padding: 10px 14px; border-radius: 12px;
+      font-size: 14px; display: none;
+    }
+    .msg.success { display: block; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+    .msg.error   { display: block; background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+
+    /* ---------- Create Form ---------- */
+    .create-card {
+      background: #fff; border: 1px solid #eee; border-radius: 24px;
+      padding: 20px 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+    }
+    .create-card h2 { font-size: 20px; font-weight: 700; color: #111827; margin-bottom: 16px; }
+
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%; padding: 14px 16px; font-size: 15px;
+      border: 1px solid #e5e7eb; border-radius: 14px;
+      outline: none; font-family: inherit; background: #f9fafb;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      border-color: #1f1f1f;
+    }
+    .form-group textarea { resize: vertical; min-height: 64px; }
+
+    .create-submit-btn {
+      width: 100%; padding: 16px; font-size: 17px; font-weight: 700;
+      border: none; border-radius: 16px; cursor: pointer; font-family: inherit;
+      background: #1f1f1f; color: #fff;
+      transition: transform 0.15s;
+    }
+    .create-submit-btn:active { transform: scale(0.97); }
+
+    /* ---------- Activity Cards ---------- */
+    .activity-card {
+      background: #ffffff; border: 1px solid #eeeeee;
+      border-radius: 24px; padding: 18px;
+      display: flex; align-items: center; gap: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.02); transition: 0.2s;
+      cursor: pointer;
+    }
+    .activity-card:active { transform: scale(0.985); }
+
+    .activity-icon {
+      width: 56px; height: 56px; border-radius: 18px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; flex-shrink: 0;
+    }
+
+    .activity-info { flex: 1; min-width: 0; }
+    .tag {
+      display: inline-block; background: #f0f4ff; color: #3b5de7;
+      font-size: 12px; font-weight: 600; padding: 4px 10px;
+      border-radius: 12px; margin-bottom: 6px;
+    }
+    .activity-title { font-size: 18px; font-weight: 700; color: #111827; margin-bottom: 4px; }
+    .activity-meta {
+      font-size: 13px; color: #6b7280; display: flex; flex-wrap: wrap;
+      gap: 8px; margin-bottom: 10px;
+    }
+    .activity-meta span { display: flex; align-items: center; gap: 3px; }
+    .activity-bottom { display: flex; justify-content: space-between; align-items: center; }
+    .people-count {
+      font-size: 14px; font-weight: 500; color: #4b5563;
+      background: #f3f4f6; padding: 5px 12px; border-radius: 20px;
+    }
+    .join-btn {
+      background: #1f1f1f; color: white; border: none;
+      border-radius: 24px; padding: 10px 20px; font-weight: 600;
+      font-size: 14px; cursor: pointer; transition: background 0.2s;
+      font-family: inherit;
+    }
+    .join-btn:active { background: #333; }
+    .join-btn:disabled { background: #d1d5db; cursor: not-allowed; }
+    .join-btn.joined { background: #10b981; }
+    .join-btn.my-activity { background: #f59e0b; }
+
+    .delete-my-btn {
+      background: none; border: 1px solid #ef4444; color: #ef4444;
+      padding: 8px 14px; border-radius: 12px; font-size: 13px;
+      cursor: pointer; margin-left: 8px; font-family: inherit; font-weight: 500;
+    }
+    .delete-my-btn:active { background: #fef2f2; }
+
+    .empty-state { text-align: center; padding: 40px 20px; color: #bbb; font-size: 16px; }
+
+    /* ---------- Skeleton ---------- */
+    .skeleton-card {
+      display: flex; align-items: center; gap: 16px;
+      padding: 18px; border-radius: 24px;
+      background: #fafafa; border: 1px solid #f0f0f0;
+    }
+    .skel-circle { width: 56px; height: 56px; border-radius: 18px; background: #e5e7eb; flex-shrink: 0; }
+    .skel-lines { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+    .skel-line { height: 14px; background: #e5e7eb; border-radius: 7px; }
+    .skel-line.w40 { width: 40%; }
+    .skel-line.w60 { width: 60%; }
+    .skel-line.w80 { width: 80%; }
+
+    /* ---------- Bottom Nav ---------- */
+    .bottom-nav {
+      display: flex; justify-content: space-around; align-items: center;
+      padding: 12px 16px 20px; background: white;
+      border-top: 1px solid #f0f0f0;
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+    }
+    .nav-item {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 4px; font-size: 11px; color: #9ca3af;
+      transition: 0.2s; cursor: pointer;
+      border: none; background: none; font-family: inherit; padding: 4px 12px;
+    }
+    .nav-item i { font-size: 20px; }
+    .nav-item.active { color: #1f1f1f; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+<div class="main-content">
+
+  <header class="app-header">
+    <span class="app-title">搭子行</span>
+    <div class="user-area">
+      <span class="user-badge" id="user-badge">👤 加载中...</span>
+      <button class="logout-btn" id="logout-btn">退出</button>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="all">全部活动</button>
+    <button class="tab" data-tab="mine">我的活动</button>
+  </div>
+
+  <div id="msg" class="msg"></div>
+
+  <!-- Create Form -->
+  <div class="create-card">
+    <h2>✏️ 发布新活动</h2>
+    <form id="create-form">
+      <div class="form-group">
+        <label>活动标题 *</label>
+        <input type="text" id="create-title" placeholder="例如：青云山徒步" required>
+      </div>
+      <div class="form-group">
+        <label>活动类型 *</label>
+        <select id="create-type" required>
+          <option value="">请选择</option>
+          <option value="徒步">徒步</option>
+          <option value="骑行">骑行</option>
+          <option value="露营">露营</option>
+          <option value="跑步">跑步</option>
+          <option value="篮球">篮球</option>
+          <option value="足球">足球</option>
+          <option value="羽毛球">羽毛球</option>
+          <option value="桌游">桌游</option>
+          <option value="自习">自习</option>
+          <option value="聚餐">聚餐</option>
+          <option value="其他">其他</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>日期时间 *</label>
+        <input type="text" id="create-date" placeholder="例如：2026/07/20 08:00" required>
+      </div>
+      <div class="form-group">
+        <label>地点 *</label>
+        <input type="text" id="create-location" placeholder="例如：青云山区" required>
+      </div>
+      <div class="form-group">
+        <label>最大人数</label>
+        <input type="number" id="create-max" value="10" min="2" max="100">
+      </div>
+      <div class="form-group">
+        <label>活动描述</label>
+        <textarea id="create-desc" placeholder="描述一下这次活动吧..."></textarea>
+      </div>
+      <button type="submit" class="create-submit-btn">🚀 发布活动</button>
+    </form>
+  </div>
+
+  <!-- Activity List -->
+  <div id="activities-container">
+    <div class="skeleton-card">
+      <div class="skel-circle"></div>
+      <div class="skel-lines">
+        <div class="skel-line w40"></div>
+        <div class="skel-line w60"></div>
+        <div class="skel-line w80"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Bottom Nav -->
+<div class="bottom-nav">
+  <button class="nav-item" data-nav="discover">
+    <i class="fas fa-compass"></i>
+    <span>发现</span>
+  </button>
+  <button class="nav-item active" data-nav="home">
+    <i class="fas fa-calendar-alt"></i>
+    <span>活动</span>
+  </button>
+  <button class="nav-item" data-nav="messages">
+    <i class="fas fa-comment-dots"></i>
+    <span>消息</span>
+  </button>
+  <button class="nav-item" data-nav="profile">
+    <i class="fas fa-user"></i>
+    <span>我的</span>
+  </button>
+</div>
+
+<script>
+  // ---------- 类型图标映射 ----------
+  const typeIcons = {
+    '徒步':   { icon: 'fa-hiking',          bg: 'linear-gradient(135deg, #e0f2e9, #b8e0ce)', color: '#2d6a4f' },
+    '骑行':   { icon: 'fa-bicycle',         bg: 'linear-gradient(135deg, #e8f4f8, #b8dbe8)', color: '#1e5a7a' },
+    '露营':   { icon: 'fa-campground',      bg: 'linear-gradient(135deg, #fef3e0, #f5d6a3)', color: '#8b6914' },
+    '跑步':   { icon: 'fa-running',         bg: 'linear-gradient(135deg, #ffe0e6, #f5b8c5)', color: '#a0304a' },
+    '篮球':   { icon: 'fa-basketball-ball', bg: 'linear-gradient(135deg, #ffe8d6, #f5c4a0)', color: '#c0601e' },
+    '足球':   { icon: 'fa-futbol',          bg: 'linear-gradient(135deg, #e0f0e0, #b8d8b8)', color: '#2d5a2d' },
+    '羽毛球': { icon: 'fa-baseball-ball',   bg: 'linear-gradient(135deg, #f0f0ff, #d0d0f8)', color: '#4040a0' },
+    '桌游':   { icon: 'fa-chess-board',     bg: 'linear-gradient(135deg, #f8e8ff, #e0c0f0)', color: '#6a3d8a' },
+    '自习':   { icon: 'fa-book',            bg: 'linear-gradient(135deg, #e8f0f8, #c0d8f0)', color: '#2d4a7a' },
+    '聚餐':   { icon: 'fa-utensils',        bg: 'linear-gradient(135deg, #ffe8d0, #f5c8a0)', color: '#b85c1e' },
+    '其他':   { icon: 'fa-star',            bg: 'linear-gradient(135deg, #f8f8e8, #e8e8c0)', color: '#6a6a2d' },
+  };
+  function getTypeStyle(type) { return typeIcons[type] || typeIcons['其他']; }
+
+  // ---------- 登录检查 ----------
+  const token = localStorage.getItem('token');
+  const userStr = localStorage.getItem('user');
+  if (!token || !userStr) { window.location.href = '/login.html'; }
+  const user = JSON.parse(userStr);
+  let currentTab = 'all';
+
+  document.getElementById('user-badge').textContent = '👤 ' + user.nickname;
+
+  document.getElementById('logout-btn').addEventListener('click', async () => {
+    try { await fetch('/api/auth/logout', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } }); } catch (e) {}
+    localStorage.removeItem('token'); localStorage.removeItem('user');
+    window.location.href = '/login.html';
+  });
+
+  // ---------- 底部导航 ----------
+  document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      if (item.dataset.nav === 'discover') window.location.href = '/discover.html';
+      else if (item.dataset.nav === 'home') { /* 已在当前页 */ }
+      else if (item.dataset.nav === 'messages') alert('消息功能即将上线 🚀');
+      else if (item.dataset.nav === 'profile') window.location.href = '/profile.html';
+    });
+  });
+
+  // ---------- Msg ----------
+  const msgBox = document.getElementById('msg');
+  function showMsg(text, type) {
+    msgBox.textContent = text; msgBox.className = 'msg ' + type;
+    setTimeout(() => { msgBox.className = 'msg'; }, 4000);
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div'); div.textContent = str; return div.innerHTML;
+  }
+
+  // ---------- Tabs ----------
+  document.querySelectorAll('.tabs .tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tabs .tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      currentTab = tab.dataset.tab;
+      loadActivities();
+    });
+  });
+
+  // ---------- Load Activities ----------
+  const container = document.getElementById('activities-container');
+
+  async function loadActivities() {
+    container.innerHTML = `
+      <div class="skeleton-card">
+        <div class="skel-circle"></div>
+        <div class="skel-lines">
+          <div class="skel-line w40"></div>
+          <div class="skel-line w60"></div>
+          <div class="skel-line w80"></div>
+        </div>
+      </div>`;
+
+    try {
+      const res = await fetch('/api/activities');
+      const json = await res.json();
+      if (!json.success) throw new Error('加载失败');
+
+      let acts = json.data || [];
+      if (currentTab === 'mine') {
+        acts = acts.filter(a => a.creator === user.phone || (a.participants && a.participants.includes(user.phone)));
+      }
+
+      if (acts.length === 0) {
+        container.innerHTML = '<div class="empty-state">暂无活动 🎉</div>';
+        return;
+      }
+
+      container.innerHTML = acts.map(a => {
+        const isFull = a.currentParticipants >= a.maxParticipants;
+        const isCreator = a.creator === user.phone;
+        const hasJoined = a.participants && a.participants.includes(user.phone);
+        const ts = getTypeStyle(a.type);
+
+        let btnHtml = '';
+        if (isCreator) {
+          btnHtml = `<button class="join-btn my-activity" disabled>我创建的</button>
+                     <button class="delete-my-btn" data-id="${escapeHtml(a.id)}">删除</button>`;
+        } else if (hasJoined) {
+          btnHtml = '<button class="join-btn joined" disabled>已加入 ✓</button>';
+        } else if (isFull) {
+          btnHtml = '<button class="join-btn" disabled>已满员</button>';
+        } else {
+          btnHtml = `<button class="join-btn" data-id="${escapeHtml(a.id)}">加入</button>`;
+        }
+
+        return `
+          <div class="activity-card" data-id="${escapeHtml(a.id)}">
+            <div class="activity-icon" style="background:${ts.bg}; color:${ts.color};">
+              <i class="fas ${ts.icon}"></i>
+            </div>
+            <div class="activity-info">
+              <span class="tag">${escapeHtml(a.type)}</span>
+              <div class="activity-title">${escapeHtml(a.title)}</div>
+              <div class="activity-meta">
+                <span><i class="far fa-calendar-alt"></i> ${escapeHtml(a.date)}</span>
+                <span><i class="fas fa-map-marker-alt"></i> ${escapeHtml(a.location)}</span>
+              </div>
+              <div class="activity-bottom">
+                <span class="people-count">${a.currentParticipants}/${a.maxParticipants}人</span>
+                <div>${btnHtml}</div>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+
+      // 加入
+      container.querySelectorAll('.join-btn:not([disabled]):not(.joined):not(.my-activity)').forEach(btn => {
+        btn.addEventListener('click', async function () {
+          const id = this.dataset.id;
+          this.disabled = true; this.textContent = '加入中...';
+          try {
+            const res = await fetch('/api/activities/' + id + '/join', {
+              method: 'POST', headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const j = await res.json();
+            if (j.success) {
+              this.textContent = '已加入 ✓'; this.classList.add('joined');
+              setTimeout(() => loadActivities(), 800);
+            } else {
+              showMsg(j.message, 'error');
+              this.disabled = false; this.textContent = '加入';
+            }
+          } catch (err) {
+            showMsg('网络错误', 'error');
+            this.disabled = false; this.textContent = '加入';
+          }
+        });
+      });
+
+      // 删除
+      container.querySelectorAll('.delete-my-btn').forEach(btn => {
+        btn.addEventListener('click', async function () {
+          const id = this.dataset.id;
+          if (!confirm('确定要删除这个活动吗？')) return;
+          try {
+            const res = await fetch('/api/activities/' + id, {
+              method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const j = await res.json();
+            if (j.success) { showMsg('活动已删除', 'success'); loadActivities(); }
+            else { showMsg(j.message, 'error'); }
+          } catch (err) { showMsg('网络错误', 'error'); }
+        });
+      });
+    } catch (err) {
+      container.innerHTML = '<div class="empty-state">加载失败，请刷新页面</div>';
+    }
+  }
+
+  // ---------- 创建活动 ----------
+  document.getElementById('create-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const payload = {
+      title: document.getElementById('create-title').value.trim(),
+      type: document.getElementById('create-type').value,
+      date: document.getElementById('create-date').value.trim(),
+      location: document.getElementById('create-location').value.trim(),
+      maxParticipants: document.getElementById('create-max').value,
+      description: document.getElementById('create-desc').value.trim()
+    };
+    try {
+      const res = await fetch('/api/activities', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify(payload)
+      });
+      const json = await res.json();
+      if (json.success) {
+        showMsg('活动发布成功！', 'success');
+        document.getElementById('create-form').reset();
+        document.getElementById('create-max').value = '10';
+        loadActivities();
+      } else { showMsg(json.message, 'error'); }
+    } catch (err) { showMsg('网络错误', 'error'); }
+  });
+
+  loadActivities();
+</script>
+
+</body>
+</html>

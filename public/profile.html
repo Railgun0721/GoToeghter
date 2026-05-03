@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>搭子行 · 我的</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #f2f3f7;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      min-height: 100vh; min-height: 100dvh;
+      -webkit-tap-highlight-color: transparent;
+      padding-bottom: 80px;
+    }
+
+    .main-content {
+      width: 100%; max-width: 480px; margin: 0 auto;
+      padding: 18px 20px 10px;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+
+    /* ---------- Header ---------- */
+    .app-header {
+      display: flex; justify-content: space-between; align-items: baseline;
+      margin-top: 4px;
+    }
+    .app-title { font-size: 28px; font-weight: 700; color: #121212; letter-spacing: -0.5px; }
+
+    /* ---------- Profile Card ---------- */
+    .profile-card {
+      background: #fff; border: 1px solid #eee; border-radius: 24px;
+      padding: 24px 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+    }
+    .avatar {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px; color: #fff; font-weight: 700;
+    }
+    .nickname {
+      font-size: 22px; font-weight: 700; color: #111827;
+    }
+    .profile-meta {
+      display: flex; gap: 24px; margin-top: 4px;
+    }
+    .meta-item {
+      text-align: center;
+    }
+    .meta-num {
+      font-size: 20px; font-weight: 700; color: #1f1f1f;
+    }
+    .meta-label {
+      font-size: 12px; color: #9ca3af; margin-top: 2px;
+    }
+
+    /* ---------- Info List ---------- */
+    .info-list {
+      background: #fff; border: 1px solid #eee; border-radius: 24px;
+      overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+    }
+    .info-item {
+      display: flex; align-items: center; padding: 16px 20px; gap: 14px;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .info-item:last-child { border-bottom: none; }
+    .info-icon {
+      width: 40px; height: 40px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .info-text { flex: 1; }
+    .info-label { font-size: 13px; color: #9ca3af; }
+    .info-value { font-size: 16px; font-weight: 600; color: #111827; margin-top: 2px; }
+
+    /* ---------- Tabs ---------- */
+    .tabs {
+      display: flex; gap: 10px; margin-top: 4px;
+      border-bottom: 1px solid #f0f0f0; padding-bottom: 12px;
+    }
+    .tab {
+      font-size: 15px; font-weight: 500; color: #6b7280;
+      padding: 6px 16px; border-radius: 20px; background: transparent;
+      cursor: pointer; transition: 0.2s; border: none; font-family: inherit;
+    }
+    .tab.active { background: #1f1f1f; color: white; font-weight: 600; }
+
+    /* ---------- Activity Cards ---------- */
+    .activity-card {
+      background: #fff; border: 1px solid #eee; border-radius: 24px;
+      padding: 18px; display: flex; align-items: center; gap: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.02); transition: 0.2s; cursor: pointer;
+    }
+    .activity-card:active { transform: scale(0.985); }
+
+    .activity-icon {
+      width: 56px; height: 56px; border-radius: 18px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; flex-shrink: 0;
+    }
+    .activity-info { flex: 1; min-width: 0; }
+    .tag {
+      display: inline-block; background: #f0f4ff; color: #3b5de7;
+      font-size: 12px; font-weight: 600; padding: 4px 10px;
+      border-radius: 12px; margin-bottom: 6px;
+    }
+    .tag.creator-tag {
+      background: #fef3c7; color: #92400e;
+    }
+    .activity-title { font-size: 18px; font-weight: 700; color: #111827; margin-bottom: 4px; }
+    .activity-meta {
+      font-size: 13px; color: #6b7280; display: flex; flex-wrap: wrap;
+      gap: 8px; margin-bottom: 10px;
+    }
+    .activity-meta span { display: flex; align-items: center; gap: 3px; }
+    .activity-bottom { display: flex; justify-content: space-between; align-items: center; }
+    .people-count {
+      font-size: 14px; font-weight: 500; color: #4b5563;
+      background: #f3f4f6; padding: 5px 12px; border-radius: 20px;
+    }
+    .status-badge {
+      font-size: 13px; font-weight: 600; padding: 6px 14px;
+      border-radius: 20px;
+    }
+    .status-badge.created { background: #fef3c7; color: #92400e; }
+    .status-badge.joined { background: #d1fae5; color: #065f46; }
+
+    .empty-state {
+      text-align: center; padding: 40px 20px; color: #bbb; font-size: 16px;
+    }
+    .empty-state i { font-size: 40px; display: block; margin-bottom: 12px; }
+
+    /* ---------- Skeleton ---------- */
+    .skeleton-card {
+      display: flex; align-items: center; gap: 16px;
+      padding: 18px; border-radius: 24px; background: #fafafa;
+      border: 1px solid #f0f0f0;
+    }
+    .skel-circle { width: 56px; height: 56px; border-radius: 18px; background: #e5e7eb; flex-shrink: 0; }
+    .skel-lines { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+    .skel-line { height: 14px; background: #e5e7eb; border-radius: 7px; }
+    .skel-line.w40 { width: 40%; }
+    .skel-line.w60 { width: 60%; }
+    .skel-line.w80 { width: 80%; }
+
+    /* ---------- Bottom Nav ---------- */
+    .bottom-nav {
+      display: flex; justify-content: space-around; align-items: center;
+      padding: 12px 16px 20px; background: white;
+      border-top: 1px solid #f0f0f0;
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+    }
+    .nav-item {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 4px; font-size: 11px; color: #9ca3af;
+      transition: 0.2s; cursor: pointer;
+      border: none; background: none; font-family: inherit; padding: 4px 12px;
+    }
+    .nav-item i { font-size: 20px; }
+    .nav-item.active { color: #1f1f1f; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+<div class="main-content">
+
+  <header class="app-header">
+    <span class="app-title">搭子行</span>
+  </header>
+
+  <!-- Profile Card -->
+  <div class="profile-card" id="profile-card">
+    <div class="avatar" id="avatar-initial">?</div>
+    <div class="nickname" id="profile-nickname">加载中...</div>
+    <div class="profile-meta">
+      <div class="meta-item">
+        <div class="meta-num" id="created-count">0</div>
+        <div class="meta-label">已创建</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-num" id="joined-count">0</div>
+        <div class="meta-label">已加入</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info List -->
+  <div class="info-list">
+    <div class="info-item">
+      <div class="info-icon" style="background:#eef2ff; color:#4f46e5;">
+        <i class="fas fa-phone"></i>
+      </div>
+      <div class="info-text">
+        <div class="info-label">手机号</div>
+        <div class="info-value" id="info-phone">---</div>
+      </div>
+    </div>
+    <div class="info-item">
+      <div class="info-icon" style="background:#fef3c7; color:#92400e;">
+        <i class="fas fa-calendar-check"></i>
+      </div>
+      <div class="info-text">
+        <div class="info-label">加入时间</div>
+        <div class="info-value" id="info-join-date">---</div>
+      </div>
+    </div>
+    <div class="info-item" style="cursor:pointer;" id="logout-row">
+      <div class="info-icon" style="background:#fee2e2; color:#dc2626;">
+        <i class="fas fa-sign-out-alt"></i>
+      </div>
+      <div class="info-text">
+        <div class="info-value" style="color:#dc2626;">退出登录</div>
+      </div>
+      <i class="fas fa-chevron-right" style="color:#d1d5db;"></i>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" data-tab="joined">我加入的</button>
+    <button class="tab" data-tab="created">我创建的</button>
+  </div>
+
+  <!-- Activity List -->
+  <div id="activities-container">
+    <div class="skeleton-card">
+      <div class="skel-circle"></div>
+      <div class="skel-lines">
+        <div class="skel-line w40"></div>
+        <div class="skel-line w60"></div>
+        <div class="skel-line w80"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Bottom Nav -->
+<div class="bottom-nav">
+  <button class="nav-item" data-nav="discover">
+    <i class="fas fa-compass"></i>
+    <span>发现</span>
+  </button>
+  <button class="nav-item" data-nav="home">
+    <i class="fas fa-calendar-alt"></i>
+    <span>活动</span>
+  </button>
+  <button class="nav-item" data-nav="messages">
+    <i class="fas fa-comment-dots"></i>
+    <span>消息</span>
+  </button>
+  <button class="nav-item active" data-nav="profile">
+    <i class="fas fa-user"></i>
+    <span>我的</span>
+  </button>
+</div>
+
+<script>
+  // ---------- 类型图标映射 ----------
+  const typeIcons = {
+    '徒步':   { icon: 'fa-hiking',          bg: 'linear-gradient(135deg, #e0f2e9, #b8e0ce)', color: '#2d6a4f' },
+    '骑行':   { icon: 'fa-bicycle',         bg: 'linear-gradient(135deg, #e8f4f8, #b8dbe8)', color: '#1e5a7a' },
+    '露营':   { icon: 'fa-campground',      bg: 'linear-gradient(135deg, #fef3e0, #f5d6a3)', color: '#8b6914' },
+    '跑步':   { icon: 'fa-running',         bg: 'linear-gradient(135deg, #ffe0e6, #f5b8c5)', color: '#a0304a' },
+    '篮球':   { icon: 'fa-basketball-ball', bg: 'linear-gradient(135deg, #ffe8d6, #f5c4a0)', color: '#c0601e' },
+    '足球':   { icon: 'fa-futbol',          bg: 'linear-gradient(135deg, #e0f0e0, #b8d8b8)', color: '#2d5a2d' },
+    '羽毛球': { icon: 'fa-baseball-ball',   bg: 'linear-gradient(135deg, #f0f0ff, #d0d0f8)', color: '#4040a0' },
+    '桌游':   { icon: 'fa-chess-board',     bg: 'linear-gradient(135deg, #f8e8ff, #e0c0f0)', color: '#6a3d8a' },
+    '自习':   { icon: 'fa-book',            bg: 'linear-gradient(135deg, #e8f0f8, #c0d8f0)', color: '#2d4a7a' },
+    '聚餐':   { icon: 'fa-utensils',        bg: 'linear-gradient(135deg, #ffe8d0, #f5c8a0)', color: '#b85c1e' },
+    '其他':   { icon: 'fa-star',            bg: 'linear-gradient(135deg, #f8f8e8, #e8e8c0)', color: '#6a6a2d' },
+  };
+  function getTypeStyle(type) { return typeIcons[type] || typeIcons['其他']; }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div'); div.textContent = str; return div.innerHTML;
+  }
+
+  // ---------- 登录检查 ----------
+  const token = localStorage.getItem('token');
+  const userStr = localStorage.getItem('user');
+  if (!token || !userStr) { window.location.href = '/login.html'; }
+  const user = JSON.parse(userStr);
+  let currentTab = 'joined';
+
+  // ---------- 渲染个人档案 ----------
+  const initial = user.nickname ? user.nickname.charAt(0) : user.phone ? user.phone.slice(-1) : '?';
+  document.getElementById('avatar-initial').textContent = initial;
+  document.getElementById('profile-nickname').textContent = user.nickname || '用户';
+  document.getElementById('info-phone').textContent = user.phone || '---';
+  if (user.createdAt) {
+    const d = new Date(user.createdAt);
+    document.getElementById('info-join-date').textContent =
+      d.getFullYear() + '/' + (d.getMonth()+1) + '/' + d.getDate();
+  } else {
+    document.getElementById('info-join-date').textContent = '---';
+  }
+
+  // ---------- 退出登录 ----------
+  document.getElementById('logout-row').addEventListener('click', async () => {
+    if (!confirm('确定要退出登录吗？')) return;
+    try { await fetch('/api/auth/logout', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } }); } catch (e) {}
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = '/login.html';
+  });
+
+  // ---------- 底部导航 ----------
+  document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const nav = item.dataset.nav;
+      if (nav === 'discover') window.location.href = '/discover.html';
+      else if (nav === 'home') window.location.href = '/home.html';
+      else if (nav === 'messages') alert('消息功能即将上线 🚀');
+      else if (nav === 'profile') { /* 已在当前页 */ }
+    });
+  });
+
+  // ---------- Tabs ----------
+  document.querySelectorAll('.tabs .tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tabs .tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      currentTab = tab.dataset.tab;
+      loadActivities();
+    });
+  });
+
+  // ---------- 加载活动 ----------
+  const container = document.getElementById('activities-container');
+
+  async function loadActivities() {
+    container.innerHTML = `
+      <div class="skeleton-card">
+        <div class="skel-circle"></div>
+        <div class="skel-lines">
+          <div class="skel-line w40"></div>
+          <div class="skel-line w60"></div>
+          <div class="skel-line w80"></div>
+        </div>
+      </div>`;
+
+    try {
+      const res = await fetch('/api/activities');
+      const json = await res.json();
+      if (!json.success) throw new Error('加载失败');
+
+      let acts = json.data || [];
+      const phone = user.phone;
+
+      if (currentTab === 'created') {
+        acts = acts.filter(a => a.creator === phone);
+      } else {
+        // joined: 我参加但不是由我创建的
+        acts = acts.filter(a =>
+          a.participants && a.participants.includes(phone) && a.creator !== phone
+        );
+      }
+
+      // Update counts
+      const allActs = json.data || [];
+      document.getElementById('created-count').textContent = allActs.filter(a => a.creator === phone).length;
+      document.getElementById('joined-count').textContent = allActs.filter(a => a.participants && a.participants.includes(phone) && a.creator !== phone).length;
+
+      if (acts.length === 0) {
+        const emptyIcon = currentTab === 'created' ? 'fa-pen-to-square' : 'fa-user-plus';
+        const emptyText = currentTab === 'created' ? '还没有创建过活动' : '还没有加入过活动';
+        container.innerHTML = `<div class="empty-state"><i class="fas ${emptyIcon}"></i>${emptyText}</div>`;
+        return;
+      }
+
+      container.innerHTML = acts.map(a => {
+        const ts = getTypeStyle(a.type);
+        const isCreator = a.creator === phone;
+        const badgeClass = isCreator ? 'created' : 'joined';
+        const badgeText = isCreator ? '我创建的' : '已加入';
+
+        return `
+          <div class="activity-card">
+            <div class="activity-icon" style="background:${ts.bg}; color:${ts.color};">
+              <i class="fas ${ts.icon}"></i>
+            </div>
+            <div class="activity-info">
+              <span class="tag${isCreator ? ' creator-tag' : ''}">${escapeHtml(a.type)}</span>
+              <div class="activity-title">${escapeHtml(a.title)}</div>
+              <div class="activity-meta">
+                <span><i class="far fa-calendar-alt"></i> ${escapeHtml(a.date)}</span>
+                <span><i class="fas fa-map-marker-alt"></i> ${escapeHtml(a.location)}</span>
+              </div>
+              <div class="activity-bottom">
+                <span class="people-count">${a.currentParticipants}/${a.maxParticipants}人</span>
+                <span class="status-badge ${badgeClass}">${badgeText}</span>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    } catch (err) {
+      container.innerHTML = '<div class="empty-state">加载失败，请刷新页面</div>';
+    }
+  }
+
+  loadActivities();
+</script>
+</body>
+</html>

@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>搭子行 · 活动管理</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+      background: linear-gradient(135deg, #f5f5f7 0%, #eef0ff 100%);
+      color: #111;
+      min-height: 100vh;
+      padding: 32px 24px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 36px;
+    }
+
+    .header h1 {
+      font-size: 40px;
+      font-weight: 900;
+    }
+
+    .back-link {
+      color: #8b8fe8;
+      text-decoration: none;
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      border-radius: 28px;
+      padding: 32px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.06);
+      margin-bottom: 28px;
+    }
+
+    .card h2 {
+      font-size: 28px;
+      margin-bottom: 24px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-group.full {
+      grid-column: 1 / -1;
+    }
+
+    .form-group label {
+      font-size: 18px;
+      font-weight: 600;
+      color: #444;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      padding: 14px 18px;
+      font-size: 18px;
+      border: 1px solid #ddd;
+      border-radius: 14px;
+      outline: none;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      border-color: #8b8fe8;
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 16px 36px;
+      font-size: 20px;
+      font-weight: 700;
+      border-radius: 16px;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #111, #000);
+      color: white;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+    }
+
+    .btn-danger {
+      background: #e74c3c;
+      color: white;
+      font-size: 16px;
+      padding: 10px 20px;
+    }
+
+    .btn-submit-row {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 8px;
+    }
+
+    .activity-list {
+      list-style: none;
+    }
+
+    .activity-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 0;
+      border-bottom: 1px solid #f0f0f0;
+      gap: 16px;
+    }
+
+    .activity-item:last-child {
+      border-bottom: none;
+    }
+
+    .activity-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .activity-info h3 {
+      font-size: 22px;
+      margin-bottom: 4px;
+    }
+
+    .activity-meta {
+      font-size: 16px;
+      color: #666;
+    }
+
+    .activity-people {
+      font-size: 16px;
+      color: #8b8fe8;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: #999;
+      font-size: 20px;
+      padding: 40px 0;
+    }
+
+    .msg {
+      padding: 14px 20px;
+      border-radius: 14px;
+      font-size: 18px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .msg.success {
+      display: block;
+      background: #e8f5e9;
+      color: #2e7d32;
+      border: 1px solid #c8e6c9;
+    }
+
+    .msg.error {
+      display: block;
+      background: #fce4ec;
+      color: #c62828;
+      border: 1px solid #f8bbd0;
+    }
+
+    @media (max-width: 640px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .header h1 {
+        font-size: 30px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <div class="header">
+      <h1>📋 活动管理</h1>
+      <a href="/" class="back-link">← 返回首页</a>
+    </div>
+
+    <!-- 消息提示 -->
+    <div id="msg" class="msg"></div>
+
+    <!-- 发布新活动 -->
+    <div class="card">
+      <h2>✏️ 发布新活动</h2>
+
+      <form id="activity-form">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="title">活动标题 *</label>
+            <input type="text" id="title" placeholder="例如：青云山徒步" required>
+          </div>
+
+          <div class="form-group">
+            <label for="type">活动类型 *</label>
+            <select id="type" required>
+              <option value="">请选择</option>
+              <option value="徒步">徒步</option>
+              <option value="骑行">骑行</option>
+              <option value="露营">露营</option>
+              <option value="跑步">跑步</option>
+              <option value="篮球">篮球</option>
+              <option value="足球">足球</option>
+              <option value="羽毛球">羽毛球</option>
+              <option value="桌游">桌游</option>
+              <option value="自习">自习</option>
+              <option value="聚餐">聚餐</option>
+              <option value="其他">其他</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="date">活动日期时间 *</label>
+            <input type="text" id="date" placeholder="例如：2026/07/20 08:00" required>
+          </div>
+
+          <div class="form-group">
+            <label for="location">活动地点 *</label>
+            <input type="text" id="location" placeholder="例如：青云山区" required>
+          </div>
+
+          <div class="form-group">
+            <label for="maxParticipants">最大参与人数</label>
+            <input type="number" id="maxParticipants" placeholder="默认 10" value="10" min="2" max="100">
+          </div>
+
+          <div class="form-group full">
+            <label for="description">活动描述</label>
+            <textarea id="description" placeholder="描述一下这次活动吧..."></textarea>
+          </div>
+
+          <div class="btn-submit-row">
+            <button type="submit" class="btn btn-primary">🚀 发布活动</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- 已有活动列表 -->
+    <div class="card">
+      <h2>📌 已有活动</h2>
+
+      <div id="activity-list-container">
+        <div class="empty-state">加载中...</div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const form = document.getElementById('activity-form');
+    const msgBox = document.getElementById('msg');
+    const listContainer = document.getElementById('activity-list-container');
+
+    // ---------- 消息显示 ----------
+    function showMsg(text, type) {
+      msgBox.textContent = text;
+      msgBox.className = 'msg ' + type;
+      setTimeout(() => {
+        msgBox.className = 'msg';
+      }, 4000);
+    }
+
+    // ---------- 加载活动列表 ----------
+    async function loadActivities() {
+      try {
+        const res = await fetch('/api/activities');
+        const json = await res.json();
+
+        if (!json.success || !json.data) {
+          listContainer.innerHTML = '<div class="empty-state">暂无活动</div>';
+          return;
+        }
+
+        const acts = json.data;
+
+        if (acts.length === 0) {
+          listContainer.innerHTML = '<div class="empty-state">暂无活动，快去发布第一个吧 🎉</div>';
+          return;
+        }
+
+        listContainer.innerHTML = `
+          <ul class="activity-list">
+            ${acts.map(a => `
+              <li class="activity-item">
+                <div class="activity-info">
+                  <h3>${escapeHtml(a.title)} <span style="font-size:14px;background:#f0f0f0;padding:2px 10px;border-radius:20px;">${escapeHtml(a.type)}</span></h3>
+                  <div class="activity-meta">📅 ${escapeHtml(a.date)} · 📍 ${escapeHtml(a.location)}</div>
+                </div>
+                <div class="activity-people">${a.currentParticipants}/${a.maxParticipants} 人</div>
+                <button class="btn btn-danger" onclick="deleteActivity('${a.id}')">删除</button>
+              </li>
+            `).join('')}
+          </ul>
+        `;
+      } catch (err) {
+        console.error('加载活动失败：', err);
+        listContainer.innerHTML = '<div class="empty-state">加载失败，请刷新页面</div>';
+      }
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    // ---------- 提交新活动 ----------
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const title = document.getElementById('title').value.trim();
+      const type = document.getElementById('type').value;
+      const date = document.getElementById('date').value.trim();
+      const location = document.getElementById('location').value.trim();
+      const maxParticipants = document.getElementById('maxParticipants').value;
+      const description = document.getElementById('description').value.trim();
+
+      try {
+        const res = await fetch('/api/activities', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, type, date, location, maxParticipants, description })
+        });
+
+        const json = await res.json();
+
+        if (json.success) {
+          showMsg(json.message, 'success');
+          form.reset();
+          document.getElementById('maxParticipants').value = '10';
+          loadActivities();
+        } else {
+          showMsg(json.message, 'error');
+        }
+      } catch (err) {
+        console.error('发布失败：', err);
+        showMsg('网络错误，请稍后再试', 'error');
+      }
+    });
+
+    // ---------- 删除活动 ----------
+    async function deleteActivity(id) {
+      if (!confirm('确定要删除这个活动吗？此操作不可撤销。')) return;
+
+      try {
+        const res = await fetch('/api/activities/' + id, { method: 'DELETE' });
+        const json = await res.json();
+
+        if (json.success) {
+          showMsg(json.message, 'success');
+          loadActivities();
+        } else {
+          showMsg(json.message, 'error');
+        }
+      } catch (err) {
+        console.error('删除失败：', err);
+        showMsg('网络错误，请稍后再试', 'error');
+      }
+    }
+
+    // ---------- 初始加载 ----------
+    loadActivities();
+  </script>
+
+</body>
+</html>
