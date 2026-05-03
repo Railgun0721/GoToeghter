@@ -8,6 +8,7 @@ const PORT = 3000;
 
 const ACTIVITIES_FILE = path.join(__dirname, 'activities.json');
 const USERS_FILE = path.join(__dirname, 'users.json');
+const ADMIN_SECRET = 'dzh-admin-2026';
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -262,6 +263,75 @@ app.delete('/api/activities/:id', authMiddleware, (req, res) => {
   saveActivities();
   console.log(`活动已删除：${removed.title}（by ${req.user.phone}）`);
   res.json({ success: true, message: '活动已删除' });
+});
+
+// ---------- 管理员 API ----------
+let adminTokens = [];
+
+app.post('/api/admin/login', (req, res) => {
+  const { password } = req.body;
+  if (!password || password !== ADMIN_SECRET) {
+    return res.status(401).json({ success: false, message: '管理员密码错误' });
+  }
+  const token = crypto.randomBytes(32).toString('hex');
+  adminTokens.push(token);
+  res.json({ success: true, data: { token }, message: '管理员登录成功' });
+});
+
+function adminMiddleware(req, res, next) {
+  const token = req.headers.authorization?.replace('Bearer ', '') || req.headers['x-admin-token'];
+  if (!token || !adminTokens.includes(token)) {
+    return res.status(401).json({ success: false, message: '请先登录管理后台' });
+  }
+  next();
+}
+
+app.get('/api/admin/stats', adminMiddleware, (_req, res) => {
+  const totalActivities = activities.length;
+  const totalUsers = Object.keys(users).length;
+  const totalParticipants = activities.reduce((sum, a) => sum + a.currentParticipants, 0);
+  const recentActivities = activities.slice(-5).reverse();
+  res.json({ success: true, data: { totalActivities, totalUsers, totalParticipants, recentActivities } });
+});
+
+app.put('/api/admin/activities/:id', adminMiddleware, (req, res) => {
+  const idx = activities.findIndex(a => a.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ success: false, message: '活动不存在' });
+  const { title, type, date, location, maxParticipants, description } = req.body;
+  if (title) activities[idx].title = title;
+  if (type) activities[idx].type = type;
+  if (date) activities[idx].date = date;
+  if (location) activities[idx].location = location;
+  if (maxParticipants) activities[idx].maxParticipants = parseInt(maxParticipants, 10);
+  if (description !== undefined) activities[idx].description = description;
+  saveActivities();
+  res.json({ success: true, data: activities[idx], message: '活动已更新' });
+});
+
+app.delete('/api/admin/activities/:id', adminMiddleware, (req, res) => {
+  const idx = activities.findIndex(a => a.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ success: false, message: '活动不存在' });
+  const removed = activities.splice(idx, 1)[0];
+  saveActivities();
+  res.json({ success: true, message: '活动已删除', data: removed });
+});
+
+app.get('/api/admin/users', adminMiddleware, (_req, res) => {
+  const userList = Object.entries(users).map(([phone, u]) => ({
+    phone,
+    nickname: u.nickname,
+    createdAt: u.createdAt,
+    banned: !!u.banned
+  }));
+  res.json({ success: true, data: userList });
+});
+
+app.put('/api/admin/users/:phone', adminMiddleware, (req, res) => {
+  const user = users[req.params.phone];
+  if (!user) return res.status(404).json({ success: false, message: '用户不存在' });
+  user.banned = !user.banned;
+  saveUsers();
+  res.json({ success: true, data: user, message: user.banned ? '用户已封禁' : '用户已解封' });
 });
 
 // ---------- 启动 ----------

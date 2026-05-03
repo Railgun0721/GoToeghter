@@ -2,339 +2,405 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>搭子行 · 管理后台</title>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --sidebar-bg: #222b45;
+      --sidebar-hover: #1a1f33;
+      --sidebar-active: #192038;
+      --sidebar-text: #a4abbd;
+      --sidebar-text-active: #fff;
+      --accent: #3366ff;
+      --accent-light: #e4e9ff;
+      --danger: #ff3d71;
+      --warning: #ffaa00;
+      --success: #00d68f;
+      --info: #0095ff;
+      --bg: #edf1f7;
+      --card-bg: #fff;
+      --card-shadow: 0 0.5rem 1rem 0 rgba(44,51,73,0.1);
+      --text: #222b45;
+      --text-hint: #8f9bb3;
+      --border: #e4e9f2;
+      --radius: 0.25rem;
+    }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-      background: #f2f3f7;
-      color: #111827;
-      min-height: 100vh; min-height: 100dvh;
-      -webkit-tap-highlight-color: transparent;
-      display: flex; justify-content: center;
-      padding-bottom: 24px;
+      font-family: 'Open Sans', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
     }
 
-    .admin-container {
-      width: 100%; max-width: 480px;
-      padding: 18px 20px 10px;
-      display: flex; flex-direction: column; gap: 14px;
+    /* ---- Sidebar ---- */
+    .sidebar {
+      width: 256px; min-width: 256px;
+      background: var(--sidebar-bg);
+      color: var(--sidebar-text);
+      display: flex; flex-direction: column;
+      height: 100vh; position: sticky; top: 0;
+      box-shadow: 0 0.5rem 1rem 0 rgba(44,51,73,0.1);
+      z-index: 100;
+    }
+    .sidebar-brand {
+      padding: 24px 20px; display: flex; align-items: center; gap: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .sidebar-brand .brand-icon {
+      width: 36px; height: 36px; border-radius: 8px;
+      background: var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; color: #fff;
+    }
+    .sidebar-brand .brand-text {
+      font-size: 18px; font-weight: 800; color: #fff; letter-spacing: -0.3px;
+    }
+    .sidebar-nav { flex: 1; padding: 12px 0; overflow-y: auto; }
+    .sidebar-nav .nav-section {
+      padding: 16px 20px 6px; font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1.2px;
+      color: rgba(255,255,255,0.3);
+    }
+    .sidebar-nav .nav-item {
+      display: flex; align-items: center; gap: 14px;
+      padding: 12px 20px; margin: 2px 8px;
+      border-radius: 4px; cursor: pointer;
+      font-size: 14px; font-weight: 600; color: var(--sidebar-text);
+      transition: all 0.15s; border: none; background: none;
+      width: calc(100% - 16px); font-family: inherit; text-align: left;
+      text-decoration: none;
+    }
+    .sidebar-nav .nav-item:hover { background: var(--sidebar-hover); color: #fff; }
+    .sidebar-nav .nav-item.active {
+      background: var(--accent); color: #fff; box-shadow: 0 2px 8px rgba(51,102,255,0.4);
+    }
+    .sidebar-nav .nav-item i { width: 20px; text-align: center; font-size: 16px; }
+    .sidebar-footer {
+      padding: 16px; border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .sidebar-footer .nav-item { width: 100%; }
+
+    /* ---- Main Content ---- */
+    .main {
+      flex: 1; display: flex; flex-direction: column; min-width: 0;
     }
 
-    /* ---------- Auth Gate ---------- */
-    #auth-gate {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      min-height: 100vh; min-height: 100dvh;
-      width: 100%; max-width: 480px; margin: 0 auto; padding: 20px;
+    /* ---- Header ---- */
+    .header {
+      background: #fff; padding: 16px 32px;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 0.5rem 1rem 0 rgba(44,51,73,0.05);
+      z-index: 50;
     }
-    #auth-gate .auth-card {
-      background: #fff; border: 1px solid #eee; border-radius: 24px;
-      padding: 32px 24px; width: 100%;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.02);
-      text-align: center;
-    }
-    #auth-gate .auth-icon { font-size: 48px; margin-bottom: 12px; }
-    #auth-gate h2 { font-size: 24px; font-weight: 700; color: #121212; margin-bottom: 6px; }
-    #auth-gate p { font-size: 14px; color: #6b7280; margin-bottom: 20px; }
-    #auth-gate input {
-      width: 100%; padding: 14px 16px; font-size: 15px;
-      border: 1px solid #e5e7eb; border-radius: 14px;
-      outline: none; font-family: inherit; background: #f9fafb;
-      transition: border-color 0.2s; margin-bottom: 14px;
-    }
-    #auth-gate input:focus { border-color: #1f1f1f; }
-    #auth-gate .auth-btn {
-      width: 100%; padding: 16px; font-size: 17px; font-weight: 700;
-      border: none; border-radius: 16px; cursor: pointer; font-family: inherit;
-      background: #1f1f1f; color: #fff;
-      transition: transform 0.15s;
-    }
-    #auth-gate .auth-btn:active { transform: scale(0.97); }
-
-    /* ---------- Header ---------- */
-    .app-header {
-      display: flex; justify-content: space-between; align-items: baseline;
-      margin-top: 4px;
-    }
-    .app-title { font-size: 28px; font-weight: 700; color: #121212; letter-spacing: -0.5px; }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .header-title { font-size: 20px; font-weight: 700; color: var(--text); }
     .header-actions { display: flex; gap: 8px; align-items: center; }
     .header-btn {
-      padding: 6px 14px; border: 1px solid #e5e7eb; border-radius: 20px;
-      background: #fff; font-size: 13px; cursor: pointer; color: #6b7280;
-      font-family: inherit; font-weight: 500;
+      padding: 8px 16px; border-radius: var(--radius); font-size: 14px;
+      font-weight: 600; cursor: pointer; border: 1px solid var(--border);
+      background: var(--card-bg); color: var(--text-hint); font-family: inherit;
+      transition: all 0.15s; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
     }
-    .header-btn.danger { border-color: #ef4444; color: #ef4444; }
+    .header-btn:hover { background: var(--bg); color: var(--text); }
+    .header-btn.danger { border-color: var(--danger); color: var(--danger); }
+    .header-btn.danger:hover { background: var(--danger); color: #fff; }
 
-    /* ---------- Tabs ---------- */
-    .tabs {
-      display: flex; gap: 6px;
-      border-bottom: 1px solid #f0f0f0; padding-bottom: 10px;
-    }
-    .tab {
-      font-size: 14px; font-weight: 500;
-      color: #6b7280; padding: 6px 14px;
-      border-radius: 20px; background: transparent;
-      cursor: pointer; transition: 0.2s;
-      border: none; font-family: inherit;
-    }
-    .tab.active { background: #1f1f1f; color: white; font-weight: 600; }
+    /* ---- Page Content ---- */
+    .content { flex: 1; padding: 24px 32px; overflow-y: auto; }
 
-    /* ---------- Msg ---------- */
-    .msg {
-      padding: 10px 14px; border-radius: 12px;
-      font-size: 14px; display: none;
+    /* ---- Auth Gate ---- */
+    #auth-gate {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; background: var(--bg);
     }
-    .msg.success { display: block; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
-    .msg.error   { display: block; background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+    #auth-gate .auth-card {
+      background: var(--card-bg); border-radius: 8px;
+      padding: 48px 40px; width: 100%; max-width: 440px;
+      box-shadow: var(--card-shadow); text-align: center;
+    }
+    #auth-gate .auth-icon {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: var(--accent);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 32px; color: #fff; margin-bottom: 20px;
+    }
+    #auth-gate h2 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+    #auth-gate p { color: var(--text-hint); font-size: 14px; margin-bottom: 28px; }
+    #auth-gate input {
+      width: 100%; padding: 12px 16px; font-size: 15px;
+      border: 1px solid var(--border); border-radius: var(--radius);
+      outline: none; font-family: inherit;
+      transition: border-color 0.2s; margin-bottom: 20px;
+    }
+    #auth-gate input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
+    #auth-gate .btn {
+      width: 100%; padding: 14px; font-size: 16px; font-weight: 700;
+      border: none; border-radius: var(--radius); cursor: pointer;
+      font-family: inherit; background: var(--accent); color: #fff;
+      transition: all 0.15s;
+    }
+    #auth-gate .btn:hover { background: #2749db; }
+    #auth-gate .auth-msg { margin-top: 16px; font-size: 13px; }
 
-    /* ---------- Stats Grid ---------- */
-    .stats-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    /* ---- Cards ---- */
+    .stats-row {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;
+      margin-bottom: 24px;
     }
+    @media (max-width: 1200px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 640px) { .stats-row { grid-template-columns: 1fr; } }
+
     .stat-card {
-      background: #fff; border: 1px solid #eee; border-radius: 20px;
-      padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+      background: var(--card-bg); border-radius: 8px; padding: 24px;
+      box-shadow: var(--card-shadow); display: flex; align-items: center; gap: 16px;
     }
-    .stat-icon { font-size: 24px; margin-bottom: 6px; }
-    .stat-value { font-size: 28px; font-weight: 700; color: #121212; }
-    .stat-label { font-size: 12px; color: #9ca3af; font-weight: 500; margin-top: 2px; }
+    .stat-card .stat-icon-wrap {
+      width: 56px; height: 56px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; color: #fff; flex-shrink: 0;
+    }
+    .stat-card .stat-icon-wrap.blue { background: var(--info); }
+    .stat-card .stat-icon-wrap.green { background: var(--success); }
+    .stat-card .stat-icon-wrap.orange { background: var(--warning); }
+    .stat-card .stat-icon-wrap.purple { background: #7c3aed; }
+    .stat-card .stat-body { min-width: 0; }
+    .stat-card .stat-value { font-size: 32px; font-weight: 800; color: var(--text); line-height: 1; }
+    .stat-card .stat-label { font-size: 13px; color: var(--text-hint); margin-top: 4px; font-weight: 600; }
 
-    /* ---------- Card ---------- */
     .card {
-      background: #fff; border: 1px solid #eee; border-radius: 24px;
-      padding: 20px 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+      background: var(--card-bg); border-radius: 8px; padding: 24px;
+      box-shadow: var(--card-shadow); margin-bottom: 24px;
     }
-    .card h2 { font-size: 20px; font-weight: 700; color: #111827; margin-bottom: 14px; }
-
-    /* ---------- Form ---------- */
-    .form-group { margin-bottom: 12px; }
-    .form-group label { display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 6px; }
-    .form-group input, .form-group select, .form-group textarea {
-      width: 100%; padding: 13px 15px; font-size: 15px;
-      border: 1px solid #e5e7eb; border-radius: 14px;
-      outline: none; font-family: inherit; background: #f9fafb;
-      transition: border-color 0.2s;
+    .card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px;
     }
-    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #1f1f1f; }
-    .form-group textarea { resize: vertical; min-height: 64px; }
+    .card-title { font-size: 18px; font-weight: 700; color: var(--text); }
 
-    .form-row { display: flex; gap: 10px; }
-    .form-row .form-group { flex: 1; }
+    /* ---- Msg / Toast ---- */
+    .toast {
+      position: fixed; top: 24px; right: 24px; z-index: 300;
+      padding: 14px 24px; border-radius: 8px; font-weight: 600; font-size: 14px;
+      opacity: 0; pointer-events: none; transition: opacity 0.3s;
+      max-width: 380px;
+    }
+    .toast.show { opacity: 1; pointer-events: auto; }
+    .toast.success { background: var(--success); color: #fff; }
+    .toast.error { background: var(--danger); color: #fff; }
+
+    /* ---- Table (nb-table style) ---- */
+    table {
+      width: 100%; border-collapse: collapse;
+    }
+    table thead th {
+      text-align: left; padding: 14px 16px; font-size: 12px;
+      font-weight: 800; color: var(--text-hint); text-transform: uppercase;
+      letter-spacing: 0.5px; border-bottom: 2px solid var(--border);
+    }
+    table tbody td {
+      padding: 16px; border-bottom: 1px solid var(--border);
+      font-size: 14px; vertical-align: middle;
+    }
+    table tbody tr:hover { background: #f7f9fc; }
+
+    .badge {
+      display: inline-block; padding: 4px 10px; border-radius: 4px;
+      font-size: 12px; font-weight: 700;
+    }
+    .badge-warning { background: #fff3cd; color: #856404; }
+    .badge-danger { background: #fce4ec; color: var(--danger); }
+    .badge-success { background: #e0f7ee; color: #00b383; }
 
     .btn {
-      display: inline-block; padding: 12px 24px; font-size: 15px; font-weight: 600;
-      border-radius: 14px; border: none; cursor: pointer; font-family: inherit;
-      transition: transform 0.15s; text-decoration: none; text-align: center;
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px; font-size: 13px; font-weight: 700;
+      border-radius: var(--radius); border: none; cursor: pointer;
+      font-family: inherit; transition: all 0.15s; text-decoration: none;
     }
-    .btn:active { transform: scale(0.97); }
-    .btn-primary { background: #1f1f1f; color: #fff; }
-    .btn-outline { background: #fff; color: #374151; border: 1px solid #e5e7eb; }
-    .btn-danger { background: #fff; color: #ef4444; border: 1px solid #ef4444; }
-    .btn-danger-solid { background: #ef4444; color: #fff; }
-    .btn-warn { background: #fff; color: #f59e0b; border: 1px solid #f59e0b; }
-    .btn-sm { padding: 8px 14px; font-size: 13px; border-radius: 10px; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: #2749db; }
+    .btn-outline { background: transparent; color: var(--text-hint); border: 1px solid var(--border); }
+    .btn-outline:hover { background: var(--bg); color: var(--text); }
+    .btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+    .btn-danger:hover { background: var(--danger); color: #fff; }
+    .btn-warning { background: transparent; color: var(--warning); border: 1px solid var(--warning); }
+    .btn-warning:hover { background: var(--warning); color: #fff; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
 
-    /* ---------- Activity List ---------- */
-    .item-list { list-style: none; }
-    .item-row {
-      display: flex; align-items: center; gap: 14px;
-      padding: 16px 0; border-bottom: 1px solid #f0f0f0;
+    /* ---- Form ---- */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 12px; font-weight: 800; color: var(--text-hint); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%; padding: 10px 14px; font-size: 14px;
+      border: 1px solid var(--border); border-radius: var(--radius);
+      outline: none; font-family: inherit; transition: border-color 0.2s;
     }
-    .item-row:last-child { border-bottom: none; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light);
+    }
+    .form-group textarea { resize: vertical; min-height: 80px; }
 
-    .item-icon {
-      width: 48px; height: 48px; border-radius: 14px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 22px; flex-shrink: 0;
-    }
-    .item-info { flex: 1; min-width: 0; }
-    .item-title { font-size: 16px; font-weight: 600; color: #111827; }
-    .item-meta { font-size: 12px; color: #6b7280; margin-top: 2px; }
-    .item-tag {
-      display: inline-block; background: #f3f4f6; color: #6b7280;
-      font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 12px;
-    }
-    .item-people { font-size: 14px; font-weight: 600; color: #4b5563; white-space: nowrap; }
-    .item-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .empty-state { text-align: center; padding: 48px 20px; color: var(--text-hint); font-size: 14px; }
+    .tab-panel { display: block; }
+    .tab-panel.hidden { display: none; }
 
-    /* ---------- User List ---------- */
-    .user-row {
-      display: flex; align-items: center; gap: 12px;
-      padding: 14px 0; border-bottom: 1px solid #f0f0f0;
-    }
-    .user-row:last-child { border-bottom: none; }
-    .user-avatar {
-      width: 40px; height: 40px; border-radius: 20px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 16px; font-weight: 700; color: #fff; flex-shrink: 0;
-    }
-    .user-info { flex: 1; min-width: 0; }
-    .user-name { font-size: 15px; font-weight: 600; color: #111827; }
-    .user-phone { font-size: 12px; color: #9ca3af; }
-    .user-stats { font-size: 12px; color: #6b7280; margin-top: 4px; display: flex; gap: 12px; }
-    .user-banned-badge {
-      font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 12px;
-      background: #fef2f2; color: #ef4444;
-    }
-
-    .empty-state { text-align: center; padding: 40px 20px; color: #bbb; font-size: 16px; }
-
-    /* ---------- Modal ---------- */
+    /* ---- Modal ---- */
     .modal-overlay {
       display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,0.4); z-index: 200;
+      background: rgba(0,0,0,0.5); z-index: 200;
       justify-content: center; align-items: center; padding: 20px;
     }
     .modal-overlay.show { display: flex; }
     .modal {
-      background: #fff; border-radius: 24px; padding: 24px;
-      width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto;
+      background: var(--card-bg); border-radius: 8px; padding: 32px;
+      width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto;
+      box-shadow: 0 1rem 2rem rgba(0,0,0,0.2);
     }
-    .modal h3 { font-size: 20px; font-weight: 700; color: #111827; margin-bottom: 16px; }
-    .modal-actions { display: flex; gap: 10px; margin-top: 16px; }
-    .modal-actions .btn { flex: 1; }
-    .item-banned { opacity: 0.5; }
+    .modal h3 { font-size: 20px; font-weight: 800; margin-bottom: 20px; }
+    .modal-actions { display: flex; gap: 12px; margin-top: 20px; }
+    .modal-actions .btn { flex: 1; justify-content: center; padding: 12px; font-size: 14px; }
+
+    /* ---- Activity type icons ---- */
+    .type-dot {
+      display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px;
+    }
+    .mr-2 { margin-right: 8px; }
   </style>
 </head>
 <body>
 
-<!-- ========== Auth Gate ========== -->
+<!-- ==================== Auth Gate ==================== -->
 <div id="auth-gate">
   <div class="auth-card">
     <div class="auth-icon">🛡️</div>
-    <h2>管理后台</h2>
+    <h2>搭子行 管理后台</h2>
     <p>请输入管理员密码以继续</p>
-    <input type="password" id="admin-pass" placeholder="管理员密码" autofocus>
-    <button class="auth-btn" id="auth-submit">验证进入</button>
-    <p id="auth-msg" style="margin-top:12px;font-size:13px;"></p>
+    <input type="password" id="admin-pass" placeholder="管理员密码" autocomplete="off">
+    <button class="btn" id="auth-submit">验证进入</button>
+    <p class="auth-msg" id="auth-msg"></p>
   </div>
 </div>
 
-<!-- ========== Admin Panel (hidden initially) ========== -->
-<div class="admin-container" id="admin-panel" style="display:none;">
-
-  <header class="app-header">
-    <span class="app-title">⚙️ 管理后台</span>
-    <div class="header-actions">
-      <a href="/home.html" class="header-btn" style="text-decoration:none;">← 返回首页</a>
-      <button class="header-btn danger" id="logout-btn">退出</button>
+<!-- ==================== Admin Layout ==================== -->
+<div id="admin-layout" style="display:none; width:100%;">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon"><i class="fas fa-shield-alt"></i></div>
+      <span class="brand-text">搭子行管理</span>
     </div>
-  </header>
+    <nav class="sidebar-nav">
+      <div class="nav-section">菜单</div>
+      <button class="nav-item active" data-tab="dashboard"><i class="fas fa-grid-2"></i>概览</button>
+      <button class="nav-item" data-tab="activities"><i class="fas fa-calendar-alt"></i>活动管理</button>
+      <button class="nav-item" data-tab="users"><i class="fas fa-people"></i>用户管理</button>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="/home.html" class="nav-item"><i class="fas fa-arrow-left"></i>返回首页</a>
+    </div>
+  </aside>
 
-  <div class="tabs">
-    <button class="tab active" data-tab="dashboard">📊 概览</button>
-    <button class="tab" data-tab="activities">🏷️ 活动管理</button>
-    <button class="tab" data-tab="users">👥 用户管理</button>
-  </div>
-
-  <div id="msg" class="msg"></div>
-
-  <!-- ===== Dashboard Tab ===== -->
-  <div id="tab-dashboard">
-    <div class="stats-grid" id="stats-grid">
-      <div class="stat-card">
-        <div class="stat-icon">👥</div>
-        <div class="stat-value" id="stat-users">-</div>
-        <div class="stat-label">注册用户</div>
+  <!-- Main -->
+  <div class="main">
+    <header class="header">
+      <div class="header-left">
+        <span class="header-title" id="current-page-title">概览</span>
       </div>
-      <div class="stat-card">
-        <div class="stat-icon">🏷️</div>
-        <div class="stat-value" id="stat-activities">-</div>
-        <div class="stat-label">总活动数</div>
+      <div class="header-actions">
+        <button class="header-btn danger" id="logout-btn"><i class="fas fa-sign-out-alt"></i>退出登录</button>
       </div>
-      <div class="stat-card">
-        <div class="stat-icon">📝</div>
-        <div class="stat-value" id="stat-participants">-</div>
-        <div class="stat-label">参与人次</div>
+    </header>
+
+    <div class="content">
+
+      <!-- ===== Dashboard Tab ===== -->
+      <div class="tab-panel" id="panel-dashboard">
+        <div class="stats-row" id="stats-row"></div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">最近活动</span></div>
+          <div id="recent-activities"><div class="empty-state">加载中...</div></div>
+        </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-icon">🆕</div>
-        <div class="stat-value" id="stat-today">-</div>
-        <div class="stat-label">今日新增</div>
+
+      <!-- ===== Activities Tab ===== -->
+      <div class="tab-panel hidden" id="panel-activities">
+        <div class="card">
+          <div class="card-header"><span class="card-title">发布新活动</span></div>
+          <form id="create-form">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>活动标题 *</label>
+                <input type="text" id="create-title" placeholder="例如：青云山徒步" required>
+              </div>
+              <div class="form-group">
+                <label>活动类型 *</label>
+                <select id="create-type" required>
+                  <option value="">请选择</option>
+                  <option value="徒步">徒步</option><option value="骑行">骑行</option>
+                  <option value="露营">露营</option><option value="跑步">跑步</option>
+                  <option value="篮球">篮球</option><option value="足球">足球</option>
+                  <option value="羽毛球">羽毛球</option><option value="桌游">桌游</option>
+                  <option value="自习">自习</option><option value="聚餐">聚餐</option>
+                  <option value="其他">其他</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>日期时间 *</label>
+                <input type="text" id="create-date" placeholder="2026/07/20 08:00" required>
+              </div>
+              <div class="form-group">
+                <label>地点 *</label>
+                <input type="text" id="create-location" placeholder="例如：青云山区" required>
+              </div>
+              <div class="form-group">
+                <label>最大人数</label>
+                <input type="number" id="create-max" placeholder="10" value="10" min="2" max="100">
+              </div>
+              <div class="form-group">
+                <label>描述</label>
+                <textarea id="create-desc" placeholder="描述一下这次活动吧..."></textarea>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary" style="margin-top:8px;">🚀 发布活动</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><span class="card-title">全部活动</span></div>
+          <div id="activity-list"><div class="empty-state">加载中...</div></div>
+        </div>
       </div>
-    </div>
 
-    <div class="card" style="margin-top:14px;">
-      <h2>🕐 最近活动</h2>
-      <div id="recent-activities"><div class="empty-state">加载中...</div></div>
-    </div>
-  </div>
+      <!-- ===== Users Tab ===== -->
+      <div class="tab-panel hidden" id="panel-users">
+        <div class="card">
+          <div class="card-header"><span class="card-title">注册用户</span></div>
+          <div id="user-list"><div class="empty-state">加载中...</div></div>
+        </div>
+      </div>
 
-  <!-- ===== Activities Tab ===== -->
-  <div id="tab-activities" style="display:none;">
-    <div class="card">
-      <h2>✏️ 发布新活动</h2>
-      <form id="create-form">
-        <div class="form-group">
-          <label>活动标题 *</label>
-          <input type="text" id="create-title" placeholder="例如：青云山徒步" required>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>活动类型 *</label>
-            <select id="create-type" required>
-              <option value="">请选择</option>
-              <option value="徒步">徒步</option><option value="骑行">骑行</option>
-              <option value="露营">露营</option><option value="跑步">跑步</option>
-              <option value="篮球">篮球</option><option value="足球">足球</option>
-              <option value="羽毛球">羽毛球</option><option value="桌游">桌游</option>
-              <option value="自习">自习</option><option value="聚餐">聚餐</option>
-              <option value="其他">其他</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>最大人数</label>
-            <input type="number" id="create-max" placeholder="10" value="10" min="2" max="100">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>日期时间 *</label>
-            <input type="text" id="create-date" placeholder="2026/07/20 08:00" required>
-          </div>
-          <div class="form-group">
-            <label>地点 *</label>
-            <input type="text" id="create-location" placeholder="例如：青云山区" required>
-          </div>
-        </div>
-        <div class="form-group">
-          <label>描述</label>
-          <textarea id="create-desc" placeholder="描述一下这次活动吧..."></textarea>
-        </div>
-        <button type="submit" class="btn btn-primary" style="width:100%;">🚀 发布活动</button>
-      </form>
-    </div>
-
-    <div class="card" style="margin-top:14px;">
-      <h2>📌 全部活动</h2>
-      <div id="activity-list"><div class="empty-state">加载中...</div></div>
-    </div>
-  </div>
-
-  <!-- ===== Users Tab ===== -->
-  <div id="tab-users" style="display:none;">
-    <div class="card">
-      <h2>👥 注册用户</h2>
-      <div id="user-list"><div class="empty-state">加载中...</div></div>
     </div>
   </div>
-
 </div>
 
-<!-- ========== Edit Modal ========== -->
+<!-- ==================== Edit Modal ==================== -->
 <div class="modal-overlay" id="edit-modal">
   <div class="modal">
     <h3>✏️ 编辑活动</h3>
     <form id="edit-form">
       <input type="hidden" id="edit-id">
-      <div class="form-group">
-        <label>活动标题</label>
-        <input type="text" id="edit-title" required>
-      </div>
-      <div class="form-row">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>活动标题</label>
+          <input type="text" id="edit-title" required>
+        </div>
         <div class="form-group">
           <label>类型</label>
           <select id="edit-type">
@@ -347,12 +413,6 @@
           </select>
         </div>
         <div class="form-group">
-          <label>最大人数</label>
-          <input type="number" id="edit-max" min="1" max="100">
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
           <label>日期时间</label>
           <input type="text" id="edit-date">
         </div>
@@ -360,10 +420,14 @@
           <label>地点</label>
           <input type="text" id="edit-location">
         </div>
-      </div>
-      <div class="form-group">
-        <label>描述</label>
-        <textarea id="edit-desc"></textarea>
+        <div class="form-group">
+          <label>最大人数</label>
+          <input type="number" id="edit-max" min="1" max="100">
+        </div>
+        <div class="form-group" style="grid-column: span 2;">
+          <label>描述</label>
+          <textarea id="edit-desc"></textarea>
+        </div>
       </div>
       <div class="modal-actions">
         <button type="button" class="btn btn-outline" id="edit-cancel">取消</button>
@@ -373,43 +437,56 @@
   </div>
 </div>
 
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
 <script>
-  // ========== Type Icon Map ==========
+  // ========== Constants ==========
   const typeIcons = {
-    '徒步': { icon: 'fa-person-hiking', bg: '#e8f5e9', color: '#2e7d32' },
-    '骑行': { icon: 'fa-bicycle', bg: '#e3f2fd', color: '#1565c0' },
-    '露营': { icon: 'fa-campground', bg: '#fff3e0', color: '#e65100' },
-    '跑步': { icon: 'fa-person-running', bg: '#fce4ec', color: '#c62828' },
-    '篮球': { icon: 'fa-basketball', bg: '#fff8e1', color: '#f57f17' },
-    '足球': { icon: 'fa-futbol', bg: '#e8eaf6', color: '#283593' },
-    '羽毛球': { icon: 'fa-baseball', bg: '#f3e5f5', color: '#6a1b9a' },
-    '桌游': { icon: 'fa-chess-board', bg: '#e0f2f1', color: '#00695c' },
-    '自习': { icon: 'fa-book', bg: '#f5f5f5', color: '#424242' },
-    '聚餐': { icon: 'fa-utensils', bg: '#ffebee', color: '#b71c1c' },
-    '其他': { icon: 'fa-star', bg: '#e8eaf6', color: '#4527a0' }
+    '徒步': { color: '#2e7d32' },
+    '骑行': { color: '#1565c0' },
+    '露营': { color: '#e65100' },
+    '跑步': { color: '#c62828' },
+    '篮球': { color: '#f57f17' },
+    '足球': { color: '#283593' },
+    '羽毛球': { color: '#6a1b9a' },
+    '桌游': { color: '#00695c' },
+    '自习': { color: '#424242' },
+    '聚餐': { color: '#b71c1c' },
+    '其他': { color: '#4527a0' }
   };
 
   const ADMIN_TOKEN_KEY = 'dzh_admin_token';
-
-  // ========== Auth ==========
-  const authGate = document.getElementById('auth-gate');
-  const adminPanel = document.getElementById('admin-panel');
   let adminToken = localStorage.getItem(ADMIN_TOKEN_KEY);
 
-  function getHeaders() {
-    return {
-      'Content-Type': 'application/json',
-      'X-Admin-Token': adminToken
-    };
+  // ========== Toast ==========
+  function showToast(text, type) {
+    const t = document.getElementById('toast');
+    t.textContent = text; t.className = 'toast ' + type + ' show';
+    clearTimeout(t._timeout);
+    t._timeout = setTimeout(() => { t.className = 'toast'; }, 3000);
   }
 
+  function getHeaders() {
+    return adminToken ? {
+      'Content-Type': 'application/json',
+      'X-Admin-Token': adminToken
+    } : { 'Content-Type': 'application/json' };
+  }
+
+  // ========== Auth ==========
   async function tryAutoAuth() {
     if (!adminToken) return false;
     try {
       const res = await fetch('/api/admin/stats', { headers: getHeaders() });
-      const json = await res.json();
-      return json.success;
+      return (await res.json()).success;
     } catch { return false; }
+  }
+
+  function showPanel() {
+    document.getElementById('auth-gate').style.display = 'none';
+    document.getElementById('admin-layout').style.display = 'flex';
+    loadDashboard();
   }
 
   document.getElementById('auth-submit').addEventListener('click', async () => {
@@ -423,17 +500,16 @@
       });
       const json = await res.json();
       if (json.success) {
-        adminToken = json.token;
+        adminToken = json.data.token;
         localStorage.setItem(ADMIN_TOKEN_KEY, adminToken);
         showPanel();
       } else {
-        msg.style.color = '#ef4444'; msg.textContent = json.message;
+        msg.style.color = '#ff3d71'; msg.textContent = json.message;
       }
     } catch {
-      msg.style.color = '#ef4444'; msg.textContent = '网络错误';
+      msg.style.color = '#ff3d71'; msg.textContent = '网络错误，请确保服务器已启动';
     }
   });
-
   document.getElementById('auth-gate').addEventListener('keydown', e => {
     if (e.key === 'Enter') document.getElementById('auth-submit').click();
   });
@@ -441,38 +517,22 @@
   document.getElementById('logout-btn').addEventListener('click', () => {
     localStorage.removeItem(ADMIN_TOKEN_KEY);
     adminToken = null;
-    authGate.style.display = 'flex';
-    adminPanel.style.display = 'none';
+    document.getElementById('admin-layout').style.display = 'none';
+    document.getElementById('auth-gate').style.display = 'flex';
     document.getElementById('admin-pass').value = '';
+    document.getElementById('auth-msg').textContent = '';
   });
 
-  // ========== Init ==========
-  function showPanel() {
-    authGate.style.display = 'none';
-    adminPanel.style.display = 'flex';
-    loadDashboard();
-  }
-
-  (async () => {
-    if (await tryAutoAuth()) { showPanel(); }
-  })();
-
-  // ========== Msg ==========
-  function showMsg(text, type) {
-    const m = document.getElementById('msg');
-    m.textContent = text; m.className = 'msg ' + type;
-    setTimeout(() => { m.className = 'msg'; }, 3500);
-  }
-
-  // ========== Tabs ==========
-  document.querySelectorAll('.tab').forEach(t => {
-    t.addEventListener('click', () => {
-      document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
-      t.classList.add('active');
-      const tab = t.dataset.tab;
-      ['dashboard','activities','users'].forEach(id => {
-        document.getElementById('tab-' + id).style.display = id === tab ? 'block' : 'none';
-      });
+  // ========== Tab Navigation ==========
+  const tabMap = { dashboard: '概览', activities: '活动管理', users: '用户管理' };
+  document.querySelectorAll('.sidebar .nav-item[data-tab]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.sidebar .nav-item[data-tab]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const tab = btn.dataset.tab;
+      document.getElementById('current-page-title').textContent = tabMap[tab] || tab;
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+      document.getElementById('panel-' + tab).classList.remove('hidden');
       if (tab === 'dashboard') loadDashboard();
       if (tab === 'activities') loadActivities();
       if (tab === 'users') loadUsers();
@@ -481,31 +541,47 @@
 
   // ========== Dashboard ==========
   async function loadDashboard() {
+    const statsRow = document.getElementById('stats-row');
+    const recentDiv = document.getElementById('recent-activities');
     try {
       const res = await fetch('/api/admin/stats', { headers: getHeaders() });
       const json = await res.json();
       if (!json.success) return;
       const d = json.data;
-      document.getElementById('stat-users').textContent = d.totalUsers;
-      document.getElementById('stat-activities').textContent = d.totalActivities;
-      document.getElementById('stat-participants').textContent = d.totalParticipants;
-      document.getElementById('stat-today').textContent = d.todayNew;
 
-      const recent = document.getElementById('recent-activities');
+      statsRow.innerHTML = `
+        <div class="stat-card">
+          <div class="stat-icon-wrap blue"><i class="fas fa-people"></i></div>
+          <div class="stat-body"><div class="stat-value">${d.totalUsers}</div><div class="stat-label">注册用户</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon-wrap green"><i class="fas fa-calendar-check"></i></div>
+          <div class="stat-body"><div class="stat-value">${d.totalActivities}</div><div class="stat-label">总活动数</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon-wrap orange"><i class="fas fa-user-check"></i></div>
+          <div class="stat-body"><div class="stat-value">${d.totalParticipants}</div><div class="stat-label">参与人次</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon-wrap purple"><i class="fas fa-calendar-plus"></i></div>
+          <div class="stat-body"><div class="stat-value">${d.todayNew ?? '-'}</div><div class="stat-label">今日新增</div></div>
+        </div>`;
+
       if (!d.recentActivities || d.recentActivities.length === 0) {
-        recent.innerHTML = '<div class="empty-state">暂无活动</div>'; return;
+        recentDiv.innerHTML = '<div class="empty-state">暂无活动</div>'; return;
       }
-      recent.innerHTML = '<ul class="item-list">' + d.recentActivities.map(a => {
-        const ti = typeIcons[a.type] || typeIcons['其他'];
-        return `<li class="item-row">
-          <div class="item-icon" style="background:${ti.bg};color:${ti.color};"><i class="fas ${ti.icon}"></i></div>
-          <div class="item-info">
-            <div class="item-title">${esc(a.title)} <span class="item-tag">${esc(a.type)}</span></div>
-            <div class="item-meta">📅 ${esc(a.date)} · 📍 ${esc(a.location)}</div>
-          </div>
-          <div class="item-people">${a.currentParticipants}/${a.maxParticipants} 人</div>
-        </li>`;
-      }).join('') + '</ul>';
+      recentDiv.innerHTML = `<table>
+        <thead><tr><th>活动</th><th>类型</th><th>日期</th><th>地点</th><th>人数</th></tr></thead>
+        <tbody>${d.recentActivities.map(a => {
+          const tc = typeIcons[a.type] || typeIcons['其他'];
+          return `<tr>
+            <td><strong>${esc(a.title)}</strong></td>
+            <td><span class="badge badge-success" style="background:${tc.color}15;color:${tc.color};">${esc(a.type)}</span></td>
+            <td>${esc(a.date)}</td>
+            <td>${esc(a.location)}</td>
+            <td><strong>${a.currentParticipants}/${a.maxParticipants}</strong></td>
+          </tr>`;
+        }).join('')}</tbody></table>`;
     } catch { /* noop */ }
   }
 
@@ -519,21 +595,22 @@
       if (acts.length === 0) {
         container.innerHTML = '<div class="empty-state">暂无活动，快去发布第一个吧 🎉</div>'; return;
       }
-      container.innerHTML = '<ul class="item-list">' + acts.map(a => {
-        const ti = typeIcons[a.type] || typeIcons['其他'];
-        return `<li class="item-row">
-          <div class="item-icon" style="background:${ti.bg};color:${ti.color};"><i class="fas ${ti.icon}"></i></div>
-          <div class="item-info">
-            <div class="item-title">${esc(a.title)} <span class="item-tag">${esc(a.type)}</span></div>
-            <div class="item-meta">📅 ${esc(a.date)} · 📍 ${esc(a.location)} · 👤 创建者: ${esc(a.creator || '未知')}</div>
-          </div>
-          <div class="item-people">${a.currentParticipants}/${a.maxParticipants} 人</div>
-          <div class="item-actions">
-            <button class="btn btn-outline btn-sm" onclick="openEdit('${a.id}')"><i class="fas fa-pen"></i></button>
-            <button class="btn btn-danger btn-sm" onclick="adminDeleteActivity('${a.id}')"><i class="fas fa-trash"></i></button>
-          </div>
-        </li>`;
-      }).join('') + '</ul>';
+      container.innerHTML = `<table>
+        <thead><tr><th>活动</th><th>类型</th><th>日期</th><th>地点</th><th>人数</th><th>操作</th></tr></thead>
+        <tbody>${acts.map(a => {
+          const tc = typeIcons[a.type] || typeIcons['其他'];
+          return `<tr>
+            <td><strong>${esc(a.title)}</strong></td>
+            <td><span class="badge badge-success" style="background:${tc.color}15;color:${tc.color};">${esc(a.type)}</span></td>
+            <td>${esc(a.date)}</td>
+            <td>${esc(a.location)}</td>
+            <td><strong>${a.currentParticipants}/${a.maxParticipants}</strong></td>
+            <td>
+              <button class="btn btn-outline btn-sm mr-2" onclick="openEdit('${a.id}')"><i class="fas fa-edit"></i> 编辑</button>
+              <button class="btn btn-danger btn-sm" onclick="adminDeleteActivity('${a.id}')"><i class="fas fa-trash"></i> 删除</button>
+            </td>
+          </tr>`;
+        }).join('')}</tbody></table>`;
     } catch {
       container.innerHTML = '<div class="empty-state">加载失败，请刷新</div>';
     }
@@ -558,19 +635,19 @@
       });
       const json = await res.json();
       if (json.success) {
-        showMsg(json.message, 'success');
+        showToast(json.message, 'success');
         document.getElementById('create-form').reset();
         document.getElementById('create-max').value = '10';
         loadActivities();
       } else {
-        showMsg(json.message, 'error');
+        showToast(json.message, 'error');
       }
     } catch {
-      showMsg('网络错误，请稍后再试', 'error');
+      showToast('网络错误', 'error');
     }
   });
 
-  // ========== Admin Delete Activity ==========
+  // ========== Admin Delete ==========
   async function adminDeleteActivity(id) {
     if (!confirm('确定要删除这个活动吗？此操作不可撤销。')) return;
     try {
@@ -580,22 +657,22 @@
       });
       const json = await res.json();
       if (json.success) {
-        showMsg(json.message, 'success');
+        showToast(json.message, 'success');
         loadActivities();
         loadDashboard();
       } else {
-        showMsg(json.message, 'error');
+        showToast(json.message, 'error');
       }
     } catch {
-      showMsg('网络错误', 'error');
+      showToast('网络错误', 'error');
     }
   }
 
-  // ========== Edit Activity Modal ==========
+  // ========== Edit Modal ==========
   async function openEdit(id) {
     const res = await fetch('/api/activities/' + id);
     const json = await res.json();
-    if (!json.success) { showMsg(json.message, 'error'); return; }
+    if (!json.success) { showToast(json.message, 'error'); return; }
     const a = json.data;
     document.getElementById('edit-id').value = a.id;
     document.getElementById('edit-title').value = a.title;
@@ -635,21 +712,19 @@
       });
       const json = await res.json();
       if (json.success) {
-        showMsg(json.message, 'success');
+        showToast(json.message, 'success');
         document.getElementById('edit-modal').classList.remove('show');
         loadActivities();
         loadDashboard();
       } else {
-        showMsg(json.message, 'error');
+        showToast(json.message, 'error');
       }
     } catch {
-      showMsg('网络错误', 'error');
+      showToast('网络错误', 'error');
     }
   });
 
   // ========== Users ==========
-  const userColors = ['#1f1f1f','#4f46e5','#059669','#d97706','#dc2626','#7c3aed','#db2777','#0891b2'];
-
   async function loadUsers() {
     const container = document.getElementById('user-list');
     try {
@@ -660,22 +735,25 @@
       if (userList.length === 0) {
         container.innerHTML = '<div class="empty-state">暂无注册用户</div>'; return;
       }
-      container.innerHTML = userList.map((u, i) => {
-        const initial = (u.nickname || 'U')[0].toUpperCase();
-        const bg = userColors[i % userColors.length];
-        const createdAt = u.createdAt ? new Date(u.createdAt).toLocaleDateString('zh-CN') : '未知';
-        return `<div class="user-row${u.banned ? ' item-banned' : ''}">
-          <div class="user-avatar" style="background:${bg};">${initial}</div>
-          <div class="user-info">
-            <div class="user-name">${esc(u.nickname)} ${u.banned ? '<span class="user-banned-badge">已封禁</span>' : ''}</div>
-            <div class="user-phone">📱 ${esc(u.phone)} · 🗓 ${createdAt}</div>
-            <div class="user-stats">📝 创建 ${u.stats.created} 个 · ✅ 参与 ${u.stats.joined} 个</div>
-          </div>
-          <button class="btn ${u.banned ? 'btn-primary' : 'btn-warn'} btn-sm" onclick="toggleBan('${u.phone}')">
-            ${u.banned ? '解封' : '封禁'}
-          </button>
-        </div>`;
-      }).join('');
+      container.innerHTML = `<table>
+        <thead><tr><th>用户</th><th>手机号</th><th>注册时间</th><th>状态</th><th>操作</th></tr></thead>
+        <tbody>${userList.map(u => {
+          const created = u.createdAt ? new Date(u.createdAt).toLocaleDateString('zh-CN') : '未知';
+          const statusBadge = u.banned
+            ? '<span class="badge badge-danger">已封禁</span>'
+            : '<span class="badge badge-success">正常</span>';
+          return `<tr>
+            <td><strong>${esc(u.nickname)}</strong></td>
+            <td>${esc(u.phone)}</td>
+            <td>${created}</td>
+            <td>${statusBadge}</td>
+            <td>
+              <button class="btn ${u.banned ? 'btn-primary' : 'btn-warning'} btn-sm" onclick="toggleBan('${u.phone}')">
+                ${u.banned ? '<i class="fas fa-unlock"></i> 解封' : '<i class="fas fa-ban"></i> 封禁'}
+              </button>
+            </td>
+          </tr>`;
+        }).join('')}</tbody></table>`;
     } catch {
       container.innerHTML = '<div class="empty-state">加载失败，请刷新</div>';
     }
@@ -689,24 +767,27 @@
       });
       const json = await res.json();
       if (json.success) {
-        showMsg(json.message, 'success');
+        showToast(json.message, 'success');
         loadUsers();
       } else {
-        showMsg(json.message, 'error');
+        showToast(json.message, 'error');
       }
     } catch {
-      showMsg('网络错误', 'error');
+      showToast('网络错误', 'error');
     }
   }
 
-  // ========== Escape ==========
   function esc(str) {
     if (!str) return '';
     const d = document.createElement('div');
     d.textContent = str;
     return d.innerHTML;
   }
-</script>
 
+  // ========== Init ==========
+  (async () => {
+    if (await tryAutoAuth()) { showPanel(); }
+  })();
+</script>
 </body>
 </html>
