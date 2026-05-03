@@ -2,415 +2,711 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>搭子行 · 活动管理</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>搭子行 · 管理后台</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
-      background: linear-gradient(135deg, #f5f5f7 0%, #eef0ff 100%);
-      color: #111;
-      min-height: 100vh;
-      padding: 32px 24px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      background: #f2f3f7;
+      color: #111827;
+      min-height: 100vh; min-height: 100dvh;
+      -webkit-tap-highlight-color: transparent;
+      display: flex; justify-content: center;
+      padding-bottom: 24px;
     }
 
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
+    .admin-container {
+      width: 100%; max-width: 480px;
+      padding: 18px 20px 10px;
+      display: flex; flex-direction: column; gap: 14px;
     }
 
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 36px;
+    /* ---------- Auth Gate ---------- */
+    #auth-gate {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-height: 100vh; min-height: 100dvh;
+      width: 100%; max-width: 480px; margin: 0 auto; padding: 20px;
     }
-
-    .header h1 {
-      font-size: 40px;
-      font-weight: 900;
+    #auth-gate .auth-card {
+      background: #fff; border: 1px solid #eee; border-radius: 24px;
+      padding: 32px 24px; width: 100%;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+      text-align: center;
     }
-
-    .back-link {
-      color: #8b8fe8;
-      text-decoration: none;
-      font-size: 20px;
-      font-weight: 600;
+    #auth-gate .auth-icon { font-size: 48px; margin-bottom: 12px; }
+    #auth-gate h2 { font-size: 24px; font-weight: 700; color: #121212; margin-bottom: 6px; }
+    #auth-gate p { font-size: 14px; color: #6b7280; margin-bottom: 20px; }
+    #auth-gate input {
+      width: 100%; padding: 14px 16px; font-size: 15px;
+      border: 1px solid #e5e7eb; border-radius: 14px;
+      outline: none; font-family: inherit; background: #f9fafb;
+      transition: border-color 0.2s; margin-bottom: 14px;
     }
+    #auth-gate input:focus { border-color: #1f1f1f; }
+    #auth-gate .auth-btn {
+      width: 100%; padding: 16px; font-size: 17px; font-weight: 700;
+      border: none; border-radius: 16px; cursor: pointer; font-family: inherit;
+      background: #1f1f1f; color: #fff;
+      transition: transform 0.15s;
+    }
+    #auth-gate .auth-btn:active { transform: scale(0.97); }
 
+    /* ---------- Header ---------- */
+    .app-header {
+      display: flex; justify-content: space-between; align-items: baseline;
+      margin-top: 4px;
+    }
+    .app-title { font-size: 28px; font-weight: 700; color: #121212; letter-spacing: -0.5px; }
+    .header-actions { display: flex; gap: 8px; align-items: center; }
+    .header-btn {
+      padding: 6px 14px; border: 1px solid #e5e7eb; border-radius: 20px;
+      background: #fff; font-size: 13px; cursor: pointer; color: #6b7280;
+      font-family: inherit; font-weight: 500;
+    }
+    .header-btn.danger { border-color: #ef4444; color: #ef4444; }
+
+    /* ---------- Tabs ---------- */
+    .tabs {
+      display: flex; gap: 6px;
+      border-bottom: 1px solid #f0f0f0; padding-bottom: 10px;
+    }
+    .tab {
+      font-size: 14px; font-weight: 500;
+      color: #6b7280; padding: 6px 14px;
+      border-radius: 20px; background: transparent;
+      cursor: pointer; transition: 0.2s;
+      border: none; font-family: inherit;
+    }
+    .tab.active { background: #1f1f1f; color: white; font-weight: 600; }
+
+    /* ---------- Msg ---------- */
+    .msg {
+      padding: 10px 14px; border-radius: 12px;
+      font-size: 14px; display: none;
+    }
+    .msg.success { display: block; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+    .msg.error   { display: block; background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+
+    /* ---------- Stats Grid ---------- */
+    .stats-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    }
+    .stat-card {
+      background: #fff; border: 1px solid #eee; border-radius: 20px;
+      padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    }
+    .stat-icon { font-size: 24px; margin-bottom: 6px; }
+    .stat-value { font-size: 28px; font-weight: 700; color: #121212; }
+    .stat-label { font-size: 12px; color: #9ca3af; font-weight: 500; margin-top: 2px; }
+
+    /* ---------- Card ---------- */
     .card {
-      background: rgba(255, 255, 255, 0.88);
-      backdrop-filter: blur(18px);
-      border: 1px solid rgba(255, 255, 255, 0.6);
-      border-radius: 28px;
-      padding: 32px;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.06);
-      margin-bottom: 28px;
+      background: #fff; border: 1px solid #eee; border-radius: 24px;
+      padding: 20px 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);
     }
+    .card h2 { font-size: 20px; font-weight: 700; color: #111827; margin-bottom: 14px; }
 
-    .card h2 {
-      font-size: 28px;
-      margin-bottom: 24px;
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-    }
-
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .form-group.full {
-      grid-column: 1 / -1;
-    }
-
-    .form-group label {
-      font-size: 18px;
-      font-weight: 600;
-      color: #444;
-    }
-
-    .form-group input,
-    .form-group select,
-    .form-group textarea {
-      padding: 14px 18px;
-      font-size: 18px;
-      border: 1px solid #ddd;
-      border-radius: 14px;
-      outline: none;
-      font-family: inherit;
+    /* ---------- Form ---------- */
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%; padding: 13px 15px; font-size: 15px;
+      border: 1px solid #e5e7eb; border-radius: 14px;
+      outline: none; font-family: inherit; background: #f9fafb;
       transition: border-color 0.2s;
     }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #1f1f1f; }
+    .form-group textarea { resize: vertical; min-height: 64px; }
 
-    .form-group input:focus,
-    .form-group select:focus,
-    .form-group textarea:focus {
-      border-color: #8b8fe8;
-    }
-
-    .form-group textarea {
-      resize: vertical;
-      min-height: 80px;
-    }
+    .form-row { display: flex; gap: 10px; }
+    .form-row .form-group { flex: 1; }
 
     .btn {
-      display: inline-block;
-      padding: 16px 36px;
-      font-size: 20px;
-      font-weight: 700;
-      border-radius: 16px;
-      border: none;
-      cursor: pointer;
-      transition: transform 0.15s, box-shadow 0.15s;
+      display: inline-block; padding: 12px 24px; font-size: 15px; font-weight: 600;
+      border-radius: 14px; border: none; cursor: pointer; font-family: inherit;
+      transition: transform 0.15s; text-decoration: none; text-align: center;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: #1f1f1f; color: #fff; }
+    .btn-outline { background: #fff; color: #374151; border: 1px solid #e5e7eb; }
+    .btn-danger { background: #fff; color: #ef4444; border: 1px solid #ef4444; }
+    .btn-danger-solid { background: #ef4444; color: #fff; }
+    .btn-warn { background: #fff; color: #f59e0b; border: 1px solid #f59e0b; }
+    .btn-sm { padding: 8px 14px; font-size: 13px; border-radius: 10px; }
+
+    /* ---------- Activity List ---------- */
+    .item-list { list-style: none; }
+    .item-row {
+      display: flex; align-items: center; gap: 14px;
+      padding: 16px 0; border-bottom: 1px solid #f0f0f0;
+    }
+    .item-row:last-child { border-bottom: none; }
+
+    .item-icon {
+      width: 48px; height: 48px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; flex-shrink: 0;
+    }
+    .item-info { flex: 1; min-width: 0; }
+    .item-title { font-size: 16px; font-weight: 600; color: #111827; }
+    .item-meta { font-size: 12px; color: #6b7280; margin-top: 2px; }
+    .item-tag {
+      display: inline-block; background: #f3f4f6; color: #6b7280;
+      font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 12px;
+    }
+    .item-people { font-size: 14px; font-weight: 600; color: #4b5563; white-space: nowrap; }
+    .item-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+    /* ---------- User List ---------- */
+    .user-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 0; border-bottom: 1px solid #f0f0f0;
+    }
+    .user-row:last-child { border-bottom: none; }
+    .user-avatar {
+      width: 40px; height: 40px; border-radius: 20px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .user-info { flex: 1; min-width: 0; }
+    .user-name { font-size: 15px; font-weight: 600; color: #111827; }
+    .user-phone { font-size: 12px; color: #9ca3af; }
+    .user-stats { font-size: 12px; color: #6b7280; margin-top: 4px; display: flex; gap: 12px; }
+    .user-banned-badge {
+      font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 12px;
+      background: #fef2f2; color: #ef4444;
     }
 
-    .btn:hover {
-      transform: translateY(-2px);
-    }
+    .empty-state { text-align: center; padding: 40px 20px; color: #bbb; font-size: 16px; }
 
-    .btn-primary {
-      background: linear-gradient(135deg, #111, #000);
-      color: white;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+    /* ---------- Modal ---------- */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.4); z-index: 200;
+      justify-content: center; align-items: center; padding: 20px;
     }
-
-    .btn-danger {
-      background: #e74c3c;
-      color: white;
-      font-size: 16px;
-      padding: 10px 20px;
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: #fff; border-radius: 24px; padding: 24px;
+      width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto;
     }
-
-    .btn-submit-row {
-      grid-column: 1 / -1;
-      display: flex;
-      justify-content: flex-end;
-      margin-top: 8px;
-    }
-
-    .activity-list {
-      list-style: none;
-    }
-
-    .activity-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 20px 0;
-      border-bottom: 1px solid #f0f0f0;
-      gap: 16px;
-    }
-
-    .activity-item:last-child {
-      border-bottom: none;
-    }
-
-    .activity-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .activity-info h3 {
-      font-size: 22px;
-      margin-bottom: 4px;
-    }
-
-    .activity-meta {
-      font-size: 16px;
-      color: #666;
-    }
-
-    .activity-people {
-      font-size: 16px;
-      color: #8b8fe8;
-      font-weight: 600;
-      white-space: nowrap;
-    }
-
-    .empty-state {
-      text-align: center;
-      color: #999;
-      font-size: 20px;
-      padding: 40px 0;
-    }
-
-    .msg {
-      padding: 14px 20px;
-      border-radius: 14px;
-      font-size: 18px;
-      margin-bottom: 20px;
-      display: none;
-    }
-
-    .msg.success {
-      display: block;
-      background: #e8f5e9;
-      color: #2e7d32;
-      border: 1px solid #c8e6c9;
-    }
-
-    .msg.error {
-      display: block;
-      background: #fce4ec;
-      color: #c62828;
-      border: 1px solid #f8bbd0;
-    }
-
-    @media (max-width: 640px) {
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .header h1 {
-        font-size: 30px;
-      }
-    }
+    .modal h3 { font-size: 20px; font-weight: 700; color: #111827; margin-bottom: 16px; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 16px; }
+    .modal-actions .btn { flex: 1; }
+    .item-banned { opacity: 0.5; }
   </style>
 </head>
 <body>
 
-  <div class="container">
+<!-- ========== Auth Gate ========== -->
+<div id="auth-gate">
+  <div class="auth-card">
+    <div class="auth-icon">🛡️</div>
+    <h2>管理后台</h2>
+    <p>请输入管理员密码以继续</p>
+    <input type="password" id="admin-pass" placeholder="管理员密码" autofocus>
+    <button class="auth-btn" id="auth-submit">验证进入</button>
+    <p id="auth-msg" style="margin-top:12px;font-size:13px;"></p>
+  </div>
+</div>
 
-    <div class="header">
-      <h1>📋 活动管理</h1>
-      <a href="/" class="back-link">← 返回首页</a>
+<!-- ========== Admin Panel (hidden initially) ========== -->
+<div class="admin-container" id="admin-panel" style="display:none;">
+
+  <header class="app-header">
+    <span class="app-title">⚙️ 管理后台</span>
+    <div class="header-actions">
+      <a href="/home.html" class="header-btn" style="text-decoration:none;">← 返回首页</a>
+      <button class="header-btn danger" id="logout-btn">退出</button>
     </div>
+  </header>
 
-    <!-- 消息提示 -->
-    <div id="msg" class="msg"></div>
+  <div class="tabs">
+    <button class="tab active" data-tab="dashboard">📊 概览</button>
+    <button class="tab" data-tab="activities">🏷️ 活动管理</button>
+    <button class="tab" data-tab="users">👥 用户管理</button>
+  </div>
 
-    <!-- 发布新活动 -->
-    <div class="card">
-      <h2>✏️ 发布新活动</h2>
+  <div id="msg" class="msg"></div>
 
-      <form id="activity-form">
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="title">活动标题 *</label>
-            <input type="text" id="title" placeholder="例如：青云山徒步" required>
-          </div>
-
-          <div class="form-group">
-            <label for="type">活动类型 *</label>
-            <select id="type" required>
-              <option value="">请选择</option>
-              <option value="徒步">徒步</option>
-              <option value="骑行">骑行</option>
-              <option value="露营">露营</option>
-              <option value="跑步">跑步</option>
-              <option value="篮球">篮球</option>
-              <option value="足球">足球</option>
-              <option value="羽毛球">羽毛球</option>
-              <option value="桌游">桌游</option>
-              <option value="自习">自习</option>
-              <option value="聚餐">聚餐</option>
-              <option value="其他">其他</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="date">活动日期时间 *</label>
-            <input type="text" id="date" placeholder="例如：2026/07/20 08:00" required>
-          </div>
-
-          <div class="form-group">
-            <label for="location">活动地点 *</label>
-            <input type="text" id="location" placeholder="例如：青云山区" required>
-          </div>
-
-          <div class="form-group">
-            <label for="maxParticipants">最大参与人数</label>
-            <input type="number" id="maxParticipants" placeholder="默认 10" value="10" min="2" max="100">
-          </div>
-
-          <div class="form-group full">
-            <label for="description">活动描述</label>
-            <textarea id="description" placeholder="描述一下这次活动吧..."></textarea>
-          </div>
-
-          <div class="btn-submit-row">
-            <button type="submit" class="btn btn-primary">🚀 发布活动</button>
-          </div>
-        </div>
-      </form>
-    </div>
-
-    <!-- 已有活动列表 -->
-    <div class="card">
-      <h2>📌 已有活动</h2>
-
-      <div id="activity-list-container">
-        <div class="empty-state">加载中...</div>
+  <!-- ===== Dashboard Tab ===== -->
+  <div id="tab-dashboard">
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <div class="stat-value" id="stat-users">-</div>
+        <div class="stat-label">注册用户</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🏷️</div>
+        <div class="stat-value" id="stat-activities">-</div>
+        <div class="stat-label">总活动数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📝</div>
+        <div class="stat-value" id="stat-participants">-</div>
+        <div class="stat-label">参与人次</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🆕</div>
+        <div class="stat-value" id="stat-today">-</div>
+        <div class="stat-label">今日新增</div>
       </div>
     </div>
 
+    <div class="card" style="margin-top:14px;">
+      <h2>🕐 最近活动</h2>
+      <div id="recent-activities"><div class="empty-state">加载中...</div></div>
+    </div>
   </div>
 
-  <script>
-    const form = document.getElementById('activity-form');
-    const msgBox = document.getElementById('msg');
-    const listContainer = document.getElementById('activity-list-container');
+  <!-- ===== Activities Tab ===== -->
+  <div id="tab-activities" style="display:none;">
+    <div class="card">
+      <h2>✏️ 发布新活动</h2>
+      <form id="create-form">
+        <div class="form-group">
+          <label>活动标题 *</label>
+          <input type="text" id="create-title" placeholder="例如：青云山徒步" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>活动类型 *</label>
+            <select id="create-type" required>
+              <option value="">请选择</option>
+              <option value="徒步">徒步</option><option value="骑行">骑行</option>
+              <option value="露营">露营</option><option value="跑步">跑步</option>
+              <option value="篮球">篮球</option><option value="足球">足球</option>
+              <option value="羽毛球">羽毛球</option><option value="桌游">桌游</option>
+              <option value="自习">自习</option><option value="聚餐">聚餐</option>
+              <option value="其他">其他</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>最大人数</label>
+            <input type="number" id="create-max" placeholder="10" value="10" min="2" max="100">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>日期时间 *</label>
+            <input type="text" id="create-date" placeholder="2026/07/20 08:00" required>
+          </div>
+          <div class="form-group">
+            <label>地点 *</label>
+            <input type="text" id="create-location" placeholder="例如：青云山区" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>描述</label>
+          <textarea id="create-desc" placeholder="描述一下这次活动吧..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;">🚀 发布活动</button>
+      </form>
+    </div>
 
-    // ---------- 消息显示 ----------
-    function showMsg(text, type) {
-      msgBox.textContent = text;
-      msgBox.className = 'msg ' + type;
-      setTimeout(() => {
-        msgBox.className = 'msg';
-      }, 4000);
-    }
+    <div class="card" style="margin-top:14px;">
+      <h2>📌 全部活动</h2>
+      <div id="activity-list"><div class="empty-state">加载中...</div></div>
+    </div>
+  </div>
 
-    // ---------- 加载活动列表 ----------
-    async function loadActivities() {
-      try {
-        const res = await fetch('/api/activities');
-        const json = await res.json();
+  <!-- ===== Users Tab ===== -->
+  <div id="tab-users" style="display:none;">
+    <div class="card">
+      <h2>👥 注册用户</h2>
+      <div id="user-list"><div class="empty-state">加载中...</div></div>
+    </div>
+  </div>
 
-        if (!json.success || !json.data) {
-          listContainer.innerHTML = '<div class="empty-state">暂无活动</div>';
-          return;
-        }
+</div>
 
-        const acts = json.data;
+<!-- ========== Edit Modal ========== -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <h3>✏️ 编辑活动</h3>
+    <form id="edit-form">
+      <input type="hidden" id="edit-id">
+      <div class="form-group">
+        <label>活动标题</label>
+        <input type="text" id="edit-title" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>类型</label>
+          <select id="edit-type">
+            <option value="徒步">徒步</option><option value="骑行">骑行</option>
+            <option value="露营">露营</option><option value="跑步">跑步</option>
+            <option value="篮球">篮球</option><option value="足球">足球</option>
+            <option value="羽毛球">羽毛球</option><option value="桌游">桌游</option>
+            <option value="自习">自习</option><option value="聚餐">聚餐</option>
+            <option value="其他">其他</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>最大人数</label>
+          <input type="number" id="edit-max" min="1" max="100">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>日期时间</label>
+          <input type="text" id="edit-date">
+        </div>
+        <div class="form-group">
+          <label>地点</label>
+          <input type="text" id="edit-location">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>描述</label>
+        <textarea id="edit-desc"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" id="edit-cancel">取消</button>
+        <button type="submit" class="btn btn-primary">保存修改</button>
+      </div>
+    </form>
+  </div>
+</div>
 
-        if (acts.length === 0) {
-          listContainer.innerHTML = '<div class="empty-state">暂无活动，快去发布第一个吧 🎉</div>';
-          return;
-        }
+<script>
+  // ========== Type Icon Map ==========
+  const typeIcons = {
+    '徒步': { icon: 'fa-person-hiking', bg: '#e8f5e9', color: '#2e7d32' },
+    '骑行': { icon: 'fa-bicycle', bg: '#e3f2fd', color: '#1565c0' },
+    '露营': { icon: 'fa-campground', bg: '#fff3e0', color: '#e65100' },
+    '跑步': { icon: 'fa-person-running', bg: '#fce4ec', color: '#c62828' },
+    '篮球': { icon: 'fa-basketball', bg: '#fff8e1', color: '#f57f17' },
+    '足球': { icon: 'fa-futbol', bg: '#e8eaf6', color: '#283593' },
+    '羽毛球': { icon: 'fa-baseball', bg: '#f3e5f5', color: '#6a1b9a' },
+    '桌游': { icon: 'fa-chess-board', bg: '#e0f2f1', color: '#00695c' },
+    '自习': { icon: 'fa-book', bg: '#f5f5f5', color: '#424242' },
+    '聚餐': { icon: 'fa-utensils', bg: '#ffebee', color: '#b71c1c' },
+    '其他': { icon: 'fa-star', bg: '#e8eaf6', color: '#4527a0' }
+  };
 
-        listContainer.innerHTML = `
-          <ul class="activity-list">
-            ${acts.map(a => `
-              <li class="activity-item">
-                <div class="activity-info">
-                  <h3>${escapeHtml(a.title)} <span style="font-size:14px;background:#f0f0f0;padding:2px 10px;border-radius:20px;">${escapeHtml(a.type)}</span></h3>
-                  <div class="activity-meta">📅 ${escapeHtml(a.date)} · 📍 ${escapeHtml(a.location)}</div>
-                </div>
-                <div class="activity-people">${a.currentParticipants}/${a.maxParticipants} 人</div>
-                <button class="btn btn-danger" onclick="deleteActivity('${a.id}')">删除</button>
-              </li>
-            `).join('')}
-          </ul>
-        `;
-      } catch (err) {
-        console.error('加载活动失败：', err);
-        listContainer.innerHTML = '<div class="empty-state">加载失败，请刷新页面</div>';
+  const ADMIN_TOKEN_KEY = 'dzh_admin_token';
+
+  // ========== Auth ==========
+  const authGate = document.getElementById('auth-gate');
+  const adminPanel = document.getElementById('admin-panel');
+  let adminToken = localStorage.getItem(ADMIN_TOKEN_KEY);
+
+  function getHeaders() {
+    return {
+      'Content-Type': 'application/json',
+      'X-Admin-Token': adminToken
+    };
+  }
+
+  async function tryAutoAuth() {
+    if (!adminToken) return false;
+    try {
+      const res = await fetch('/api/admin/stats', { headers: getHeaders() });
+      const json = await res.json();
+      return json.success;
+    } catch { return false; }
+  }
+
+  document.getElementById('auth-submit').addEventListener('click', async () => {
+    const pass = document.getElementById('admin-pass').value;
+    const msg = document.getElementById('auth-msg');
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: pass })
+      });
+      const json = await res.json();
+      if (json.success) {
+        adminToken = json.token;
+        localStorage.setItem(ADMIN_TOKEN_KEY, adminToken);
+        showPanel();
+      } else {
+        msg.style.color = '#ef4444'; msg.textContent = json.message;
       }
+    } catch {
+      msg.style.color = '#ef4444'; msg.textContent = '网络错误';
     }
+  });
 
-    function escapeHtml(str) {
-      const div = document.createElement('div');
-      div.textContent = str;
-      return div.innerHTML;
-    }
+  document.getElementById('auth-gate').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('auth-submit').click();
+  });
 
-    // ---------- 提交新活动 ----------
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
+  document.getElementById('logout-btn').addEventListener('click', () => {
+    localStorage.removeItem(ADMIN_TOKEN_KEY);
+    adminToken = null;
+    authGate.style.display = 'flex';
+    adminPanel.style.display = 'none';
+    document.getElementById('admin-pass').value = '';
+  });
 
-      const title = document.getElementById('title').value.trim();
-      const type = document.getElementById('type').value;
-      const date = document.getElementById('date').value.trim();
-      const location = document.getElementById('location').value.trim();
-      const maxParticipants = document.getElementById('maxParticipants').value;
-      const description = document.getElementById('description').value.trim();
+  // ========== Init ==========
+  function showPanel() {
+    authGate.style.display = 'none';
+    adminPanel.style.display = 'flex';
+    loadDashboard();
+  }
 
-      try {
-        const res = await fetch('/api/activities', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title, type, date, location, maxParticipants, description })
-        });
+  (async () => {
+    if (await tryAutoAuth()) { showPanel(); }
+  })();
 
-        const json = await res.json();
+  // ========== Msg ==========
+  function showMsg(text, type) {
+    const m = document.getElementById('msg');
+    m.textContent = text; m.className = 'msg ' + type;
+    setTimeout(() => { m.className = 'msg'; }, 3500);
+  }
 
-        if (json.success) {
-          showMsg(json.message, 'success');
-          form.reset();
-          document.getElementById('maxParticipants').value = '10';
-          loadActivities();
-        } else {
-          showMsg(json.message, 'error');
-        }
-      } catch (err) {
-        console.error('发布失败：', err);
-        showMsg('网络错误，请稍后再试', 'error');
-      }
+  // ========== Tabs ==========
+  document.querySelectorAll('.tab').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      const tab = t.dataset.tab;
+      ['dashboard','activities','users'].forEach(id => {
+        document.getElementById('tab-' + id).style.display = id === tab ? 'block' : 'none';
+      });
+      if (tab === 'dashboard') loadDashboard();
+      if (tab === 'activities') loadActivities();
+      if (tab === 'users') loadUsers();
     });
+  });
 
-    // ---------- 删除活动 ----------
-    async function deleteActivity(id) {
-      if (!confirm('确定要删除这个活动吗？此操作不可撤销。')) return;
+  // ========== Dashboard ==========
+  async function loadDashboard() {
+    try {
+      const res = await fetch('/api/admin/stats', { headers: getHeaders() });
+      const json = await res.json();
+      if (!json.success) return;
+      const d = json.data;
+      document.getElementById('stat-users').textContent = d.totalUsers;
+      document.getElementById('stat-activities').textContent = d.totalActivities;
+      document.getElementById('stat-participants').textContent = d.totalParticipants;
+      document.getElementById('stat-today').textContent = d.todayNew;
 
-      try {
-        const res = await fetch('/api/activities/' + id, { method: 'DELETE' });
-        const json = await res.json();
-
-        if (json.success) {
-          showMsg(json.message, 'success');
-          loadActivities();
-        } else {
-          showMsg(json.message, 'error');
-        }
-      } catch (err) {
-        console.error('删除失败：', err);
-        showMsg('网络错误，请稍后再试', 'error');
+      const recent = document.getElementById('recent-activities');
+      if (!d.recentActivities || d.recentActivities.length === 0) {
+        recent.innerHTML = '<div class="empty-state">暂无活动</div>'; return;
       }
-    }
+      recent.innerHTML = '<ul class="item-list">' + d.recentActivities.map(a => {
+        const ti = typeIcons[a.type] || typeIcons['其他'];
+        return `<li class="item-row">
+          <div class="item-icon" style="background:${ti.bg};color:${ti.color};"><i class="fas ${ti.icon}"></i></div>
+          <div class="item-info">
+            <div class="item-title">${esc(a.title)} <span class="item-tag">${esc(a.type)}</span></div>
+            <div class="item-meta">📅 ${esc(a.date)} · 📍 ${esc(a.location)}</div>
+          </div>
+          <div class="item-people">${a.currentParticipants}/${a.maxParticipants} 人</div>
+        </li>`;
+      }).join('') + '</ul>';
+    } catch { /* noop */ }
+  }
 
-    // ---------- 初始加载 ----------
-    loadActivities();
-  </script>
+  // ========== Activities ==========
+  async function loadActivities() {
+    const container = document.getElementById('activity-list');
+    try {
+      const res = await fetch('/api/activities');
+      const json = await res.json();
+      const acts = json.data || [];
+      if (acts.length === 0) {
+        container.innerHTML = '<div class="empty-state">暂无活动，快去发布第一个吧 🎉</div>'; return;
+      }
+      container.innerHTML = '<ul class="item-list">' + acts.map(a => {
+        const ti = typeIcons[a.type] || typeIcons['其他'];
+        return `<li class="item-row">
+          <div class="item-icon" style="background:${ti.bg};color:${ti.color};"><i class="fas ${ti.icon}"></i></div>
+          <div class="item-info">
+            <div class="item-title">${esc(a.title)} <span class="item-tag">${esc(a.type)}</span></div>
+            <div class="item-meta">📅 ${esc(a.date)} · 📍 ${esc(a.location)} · 👤 创建者: ${esc(a.creator || '未知')}</div>
+          </div>
+          <div class="item-people">${a.currentParticipants}/${a.maxParticipants} 人</div>
+          <div class="item-actions">
+            <button class="btn btn-outline btn-sm" onclick="openEdit('${a.id}')"><i class="fas fa-pen"></i></button>
+            <button class="btn btn-danger btn-sm" onclick="adminDeleteActivity('${a.id}')"><i class="fas fa-trash"></i></button>
+          </div>
+        </li>`;
+      }).join('') + '</ul>';
+    } catch {
+      container.innerHTML = '<div class="empty-state">加载失败，请刷新</div>';
+    }
+  }
+
+  // ========== Create Activity ==========
+  document.getElementById('create-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const body = {
+      title: document.getElementById('create-title').value.trim(),
+      type: document.getElementById('create-type').value,
+      date: document.getElementById('create-date').value.trim(),
+      location: document.getElementById('create-location').value.trim(),
+      maxParticipants: document.getElementById('create-max').value,
+      description: document.getElementById('create-desc').value.trim()
+    };
+    try {
+      const res = await fetch('/api/activities', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const json = await res.json();
+      if (json.success) {
+        showMsg(json.message, 'success');
+        document.getElementById('create-form').reset();
+        document.getElementById('create-max').value = '10';
+        loadActivities();
+      } else {
+        showMsg(json.message, 'error');
+      }
+    } catch {
+      showMsg('网络错误，请稍后再试', 'error');
+    }
+  });
+
+  // ========== Admin Delete Activity ==========
+  async function adminDeleteActivity(id) {
+    if (!confirm('确定要删除这个活动吗？此操作不可撤销。')) return;
+    try {
+      const res = await fetch('/api/admin/activities/' + id, {
+        method: 'DELETE',
+        headers: getHeaders()
+      });
+      const json = await res.json();
+      if (json.success) {
+        showMsg(json.message, 'success');
+        loadActivities();
+        loadDashboard();
+      } else {
+        showMsg(json.message, 'error');
+      }
+    } catch {
+      showMsg('网络错误', 'error');
+    }
+  }
+
+  // ========== Edit Activity Modal ==========
+  async function openEdit(id) {
+    const res = await fetch('/api/activities/' + id);
+    const json = await res.json();
+    if (!json.success) { showMsg(json.message, 'error'); return; }
+    const a = json.data;
+    document.getElementById('edit-id').value = a.id;
+    document.getElementById('edit-title').value = a.title;
+    document.getElementById('edit-type').value = a.type;
+    document.getElementById('edit-date').value = a.date;
+    document.getElementById('edit-location').value = a.location;
+    document.getElementById('edit-max').value = a.maxParticipants;
+    document.getElementById('edit-desc').value = a.description || '';
+    document.getElementById('edit-modal').classList.add('show');
+  }
+
+  document.getElementById('edit-cancel').addEventListener('click', () => {
+    document.getElementById('edit-modal').classList.remove('show');
+  });
+  document.getElementById('edit-modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('edit-modal')) {
+      document.getElementById('edit-modal').classList.remove('show');
+    }
+  });
+
+  document.getElementById('edit-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const id = document.getElementById('edit-id').value;
+    const body = {
+      title: document.getElementById('edit-title').value.trim(),
+      type: document.getElementById('edit-type').value,
+      date: document.getElementById('edit-date').value.trim(),
+      location: document.getElementById('edit-location').value.trim(),
+      maxParticipants: document.getElementById('edit-max').value,
+      description: document.getElementById('edit-desc').value.trim()
+    };
+    try {
+      const res = await fetch('/api/admin/activities/' + id, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(body)
+      });
+      const json = await res.json();
+      if (json.success) {
+        showMsg(json.message, 'success');
+        document.getElementById('edit-modal').classList.remove('show');
+        loadActivities();
+        loadDashboard();
+      } else {
+        showMsg(json.message, 'error');
+      }
+    } catch {
+      showMsg('网络错误', 'error');
+    }
+  });
+
+  // ========== Users ==========
+  const userColors = ['#1f1f1f','#4f46e5','#059669','#d97706','#dc2626','#7c3aed','#db2777','#0891b2'];
+
+  async function loadUsers() {
+    const container = document.getElementById('user-list');
+    try {
+      const res = await fetch('/api/admin/users', { headers: getHeaders() });
+      const json = await res.json();
+      if (!json.success) { container.innerHTML = '<div class="empty-state">加载失败</div>'; return; }
+      const userList = json.data || [];
+      if (userList.length === 0) {
+        container.innerHTML = '<div class="empty-state">暂无注册用户</div>'; return;
+      }
+      container.innerHTML = userList.map((u, i) => {
+        const initial = (u.nickname || 'U')[0].toUpperCase();
+        const bg = userColors[i % userColors.length];
+        const createdAt = u.createdAt ? new Date(u.createdAt).toLocaleDateString('zh-CN') : '未知';
+        return `<div class="user-row${u.banned ? ' item-banned' : ''}">
+          <div class="user-avatar" style="background:${bg};">${initial}</div>
+          <div class="user-info">
+            <div class="user-name">${esc(u.nickname)} ${u.banned ? '<span class="user-banned-badge">已封禁</span>' : ''}</div>
+            <div class="user-phone">📱 ${esc(u.phone)} · 🗓 ${createdAt}</div>
+            <div class="user-stats">📝 创建 ${u.stats.created} 个 · ✅ 参与 ${u.stats.joined} 个</div>
+          </div>
+          <button class="btn ${u.banned ? 'btn-primary' : 'btn-warn'} btn-sm" onclick="toggleBan('${u.phone}')">
+            ${u.banned ? '解封' : '封禁'}
+          </button>
+        </div>`;
+      }).join('');
+    } catch {
+      container.innerHTML = '<div class="empty-state">加载失败，请刷新</div>';
+    }
+  }
+
+  async function toggleBan(phone) {
+    try {
+      const res = await fetch('/api/admin/users/' + phone, {
+        method: 'PUT',
+        headers: getHeaders()
+      });
+      const json = await res.json();
+      if (json.success) {
+        showMsg(json.message, 'success');
+        loadUsers();
+      } else {
+        showMsg(json.message, 'error');
+      }
+    } catch {
+      showMsg('网络错误', 'error');
+    }
+  }
+
+  // ========== Escape ==========
+  function esc(str) {
+    if (!str) return '';
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+</script>
 
 </body>
 </html>
