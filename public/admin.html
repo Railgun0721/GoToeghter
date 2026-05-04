@@ -272,6 +272,13 @@
       display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px;
     }
     .mr-2 { margin-right: 8px; }
+
+    /* 敏感词提示 */
+    .sensitive-tip {
+      font-size: 12px; margin-top: 4px; min-height: 18px; transition: all 0.2s;
+    }
+    .sensitive-tip.warn { color: var(--danger); font-weight: 600; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
   </style>
 </head>
 <body>
@@ -341,6 +348,7 @@
               <div class="form-group">
                 <label>活动标题 *</label>
                 <input type="text" id="create-title" placeholder="例如：青云山徒步" required>
+                <div class="sensitive-tip" id="admin-tip-title"></div>
               </div>
               <div class="form-group">
                 <label>活动类型 *</label>
@@ -361,6 +369,7 @@
               <div class="form-group">
                 <label>地点 *</label>
                 <input type="text" id="create-location" placeholder="例如：青云山区" required>
+                <div class="sensitive-tip" id="admin-tip-location"></div>
               </div>
               <div class="form-group">
                 <label>最大人数</label>
@@ -369,9 +378,11 @@
               <div class="form-group">
                 <label>描述</label>
                 <textarea id="create-desc" placeholder="描述一下这次活动吧..."></textarea>
+                <div class="sensitive-tip" id="admin-tip-desc"></div>
               </div>
             </div>
-            <button type="submit" class="btn btn-primary" style="margin-top:8px;">🚀 发布活动</button>
+            <div class="sensitive-tip" id="admin-tip-global"></div>
+            <button type="submit" class="btn btn-primary" id="admin-create-btn" style="margin-top:8px;">🚀 发布活动</button>
           </form>
         </div>
 
@@ -962,6 +973,52 @@
   (async () => {
     if (await tryAutoAuth()) { showPanel(); }
   })();
+
+  // ========== 敏感词实时检测 ==========
+  var _adminCheckTimer = null;
+  var adminSubmitBtn = document.getElementById('admin-create-btn');
+  var adminTipTitle = document.getElementById('admin-tip-title');
+  var adminTipLocation = document.getElementById('admin-tip-location');
+  var adminTipDesc = document.getElementById('admin-tip-desc');
+
+  function adminCheckSensitive(text, tipEl) {
+    clearTimeout(_adminCheckTimer);
+    if (!text || !text.trim()) {
+      if (tipEl) { tipEl.textContent = ''; tipEl.className = 'sensitive-tip'; }
+      adminSubmitBtn.disabled = false;
+      return;
+    }
+    _adminCheckTimer = setTimeout(async function() {
+      try {
+        var resp = await fetch('/api/check-sensitive', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: text.trim() })
+        });
+        var data = await resp.json();
+        if (data.success && data.data.hasSensitive) {
+          if (tipEl) { tipEl.textContent = '⚠️ 内容包含敏感词，请修改后再提交'; tipEl.className = 'sensitive-tip warn'; }
+          adminSubmitBtn.disabled = true;
+        } else {
+          if (tipEl) { tipEl.textContent = ''; tipEl.className = 'sensitive-tip'; }
+          adminSubmitBtn.disabled = false;
+        }
+      } catch (e) {
+        if (tipEl) { tipEl.textContent = ''; tipEl.className = 'sensitive-tip'; }
+        adminSubmitBtn.disabled = false;
+      }
+    }, 500);
+  }
+
+  document.getElementById('create-title').addEventListener('input', function() {
+    adminCheckSensitive(this.value, adminTipTitle);
+  });
+  document.getElementById('create-location').addEventListener('input', function() {
+    adminCheckSensitive(this.value, adminTipLocation);
+  });
+  document.getElementById('create-desc').addEventListener('input', function() {
+    adminCheckSensitive(this.value, adminTipDesc);
+  });
 </script>
 </body>
 </html>

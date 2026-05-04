@@ -81,6 +81,13 @@
       transition: transform 0.15s;
     }
     .create-submit-btn:active { transform: scale(0.97); }
+    .create-submit-btn:disabled { background: #9ca3af; cursor: not-allowed; }
+
+    /* 敏感词提示 */
+    .sensitive-tip {
+      font-size: 13px; margin-top: 4px; min-height: 20px; transition: all 0.2s;
+    }
+    .sensitive-tip.warn { color: #ef4444; font-weight: 500; }
 
     /* ---------- Activity specific ---------- */
     .delete-my-btn {
@@ -124,6 +131,7 @@
       <div class="form-group">
         <label>活动标题 *</label>
         <input type="text" id="create-title" placeholder="例如：青云山徒步" required>
+        <div class="sensitive-tip" id="tip-title"></div>
       </div>
       <div class="form-group">
         <label>活动类型 *</label>
@@ -149,6 +157,7 @@
       <div class="form-group">
         <label>地点 *</label>
         <input type="text" id="create-location" placeholder="例如：青云山区" required>
+        <div class="sensitive-tip" id="tip-location"></div>
       </div>
       <div class="form-group">
         <label>最大人数</label>
@@ -157,8 +166,10 @@
       <div class="form-group">
         <label>活动描述</label>
         <textarea id="create-desc" placeholder="描述一下这次活动吧..."></textarea>
+        <div class="sensitive-tip" id="tip-desc"></div>
       </div>
-      <button type="submit" class="create-submit-btn">🚀 发布活动</button>
+      <div class="sensitive-tip" id="tip-form-global"></div>
+      <button type="submit" class="create-submit-btn" id="create-submit-btn">🚀 发布活动</button>
     </form>
   </div>
 
@@ -409,6 +420,22 @@
   });
 
   loadActivities();
+
+  // ---------- 敏感词实时检测 ----------
+  var submitBtn = document.getElementById('create-submit-btn');
+  var tipTitle = document.getElementById('tip-title');
+  var tipLocation = document.getElementById('tip-location');
+  var tipDesc = document.getElementById('tip-desc');
+
+  document.getElementById('create-title').addEventListener('input', function() {
+    dzhCheckSensitive(this.value, tipTitle, submitBtn);
+  });
+  document.getElementById('create-location').addEventListener('input', function() {
+    dzhCheckSensitive(this.value, tipLocation, submitBtn);
+  });
+  document.getElementById('create-desc').addEventListener('input', function() {
+    dzhCheckSensitive(this.value, tipDesc, submitBtn);
+  });
 </script>
 
 </body>

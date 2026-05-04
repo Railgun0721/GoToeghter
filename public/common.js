@@ -99,6 +99,62 @@ function dzhInitBottomNav(activeNav) {
   });
 }
 
+// ---------- 敏感词实时检测 ----------
+// 防抖定时器
+var _sensitiveCheckTimer = null;
+
+/**
+ * 对输入框内容进行敏感词实时检测
+ * @param {string} text - 待检测文本
+ * @param {HTMLElement} tipEl - 提示元素
+ * @param {HTMLElement} [submitBtn] - 提交按钮（可选，检测到敏感词时禁用）
+ * @param {number} [delay=500] - 防抖延迟（毫秒）
+ */
+function dzhCheckSensitive(text, tipEl, submitBtn, delay) {
+  delay = delay || 500;
+  clearTimeout(_sensitiveCheckTimer);
+
+  if (!text || !text.trim()) {
+    if (tipEl) {
+      tipEl.textContent = '';
+      tipEl.className = 'sensitive-tip';
+    }
+    if (submitBtn) submitBtn.disabled = false;
+    return;
+  }
+
+  _sensitiveCheckTimer = setTimeout(async function() {
+    try {
+      var resp = await fetch('/api/check-sensitive', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: text.trim() })
+      });
+      var data = await resp.json();
+      if (data.success && data.data.hasSensitive) {
+        if (tipEl) {
+          tipEl.textContent = '⚠️ 内容包含敏感词，请修改后再提交';
+          tipEl.className = 'sensitive-tip warn';
+        }
+        if (submitBtn) submitBtn.disabled = true;
+      } else {
+        if (tipEl) {
+          tipEl.textContent = '';
+          tipEl.className = 'sensitive-tip';
+        }
+        if (submitBtn) submitBtn.disabled = false;
+      }
+    } catch (e) {
+      // 网络错误时不阻塞用户操作
+      if (tipEl) {
+        tipEl.textContent = '';
+        tipEl.className = 'sensitive-tip';
+      }
+      if (submitBtn) submitBtn.disabled = false;
+    }
+  }, delay);
+}
+
 // ---------- 骨架屏 HTML ----------
 function dzhSkeletonHTML() {
   return '<div class="skeleton-card">' +

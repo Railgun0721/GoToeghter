@@ -2,6 +2,7 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const sensitiveFilter = require('./lib/sensitive-filter');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -242,6 +243,9 @@ app.post('/api/activities', authMiddleware, (req, res) => {
     return res.status(400).json({ success: false, message: '请填写完整的活动信息（标题、类型、日期、地点为必填）' });
   }
 
+  // 敏感词检测
+  if (checkSensitiveFields({ title, location, description }, res)) return;
+
   const newAct = {
     id: String(Date.now()),
     title,
@@ -349,6 +353,9 @@ app.post('/api/admin/activities', adminMiddleware, (req, res) => {
     return res.status(400).json({ success: false, message: '请填写完整的活动信息（标题、类型、日期、地点为必填）' });
   }
 
+  // 敏感词检测
+  if (checkSensitiveFields({ title, location, description }, res)) return;
+
   const newAct = {
     id: String(Date.now()),
     title,
@@ -380,6 +387,8 @@ app.put('/api/admin/activities/:id', adminMiddleware, (req, res) => {
   const idx = activities.findIndex(a => a.id === req.params.id);
   if (idx === -1) return res.status(404).json({ success: false, message: '活动不存在' });
   const { title, type, date, location, maxParticipants, description } = req.body;
+  // 敏感词检测（仅检测提供的字段）
+  if (checkSensitiveFields({ title, location, description }, res)) return;
   if (title) activities[idx].title = title;
   if (type) activities[idx].type = type;
   if (date) activities[idx].date = date;
@@ -456,6 +465,8 @@ app.post('/api/admin/announcements', adminMiddleware, (req, res) => {
   if (!title || !content) {
     return res.status(400).json({ success: false, message: '标题和内容不能为空' });
   }
+  // 敏感词检测
+  if (checkSensitiveFields({ title, content }, res)) return;
   const list = loadAnnouncements();
   const item = {
     id: String(Date.now()),
@@ -524,6 +535,64 @@ app.get('/api/admin/users/:phone/activities', adminMiddleware, (req, res) => {
   res.json({ success: true, data: userActs });
 });
 
+// ---------- 敏感词检查辅助函数 ----------
+function checkSensitiveFields(fields, res) {
+  for (const [fieldName, value] of Object.entries(fields)) {
+    if (value && typeof value === 'string') {
+      const result = sensitiveFilter.detect(value.trim());
+      if (result.hasSensitive) {
+        const fieldNames = {
+          title: '标题',
+          description: '描述',
+          content: '内容',
+          nickname: '昵称',
+          location: '地点'
+        };
+        const displayName = fieldNames[fieldName] || fieldName;
+        res.status(400).json({
+          success: false,
+          message: `${displayName}中包含敏感词，请修改后再提交`,
+          data: {
+            field: fieldName,
+            sensitiveWords: result.words
+          }
+        });
+        return true; // 包含敏感词
+      }
+    }
+  }
+  return false; // 不包含敏感词
+}
+
+// ---------- 敏感词检测 API ----------
+// 公开接口：检测文本是否包含敏感词
+app.post('/api/check-sensitive', (req, res) => {
+  const { text } = req.body;
+  if (!text || typeof text !== 'string') {
+    return res.json({ success: false, message: '请提供待检测的文本' });
+  }
+  const result = sensitiveFilter.detect(text.trim());
+  res.json({
+    success: true,
+    data: {
+      hasSensitive: result.hasSensitive,
+      words: result.words,
+      cleanText: result.cleanText
+    }
+  });
+});
+
+// 管理员：获取敏感词库统计信息
+app.get('/api/admin/sensitive/stats', adminMiddleware, (_req, res) => {
+  res.json({
+    success: true,
+    data: {
+      loaded: sensitiveFilter.loaded,
+      vocabularyDir: path.join(__dirname, 'Sensitive-lexicon', 'Vocabulary')
+    }
+  });
+});
+
 // ---------- 404 处理 ----------
 app.use((_req, res) => {
   res.status(404).json({ success: false, message: '接口不存在' });
@@ -536,6 +605,7 @@ app.use((err, _req, res, _next) => {
 });
 
 // ---------- 启动 ----------
+sensitiveFilter.load();
 app.listen(PORT, () => {
   console.log(`搭子行网站已启动：http://localhost:${PORT}`);
 });
