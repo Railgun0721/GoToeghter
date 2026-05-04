@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>搭子行 · 管理后台</title>
-  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- 已移除 Google Fonts，使用系统字体 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -30,7 +30,7 @@
     }
 
     body {
-      font-family: 'Open Sans', -apple-system, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', 'PingFang SC', 'Microsoft YaHei', sans-serif;
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
@@ -301,6 +301,9 @@
       <button class="nav-item active" data-tab="dashboard"><i class="fas fa-grid-2"></i>概览</button>
       <button class="nav-item" data-tab="activities"><i class="fas fa-calendar-alt"></i>活动管理</button>
       <button class="nav-item" data-tab="users"><i class="fas fa-people"></i>用户管理</button>
+      <button class="nav-item" data-tab="students"><i class="fas fa-id-card"></i>学号管理</button>
+      <button class="nav-item" data-tab="announcements"><i class="fas fa-bullhorn"></i>系统公告</button>
+      <button class="nav-item" data-tab="export"><i class="fas fa-download"></i>数据导出</button>
     </nav>
     <div class="sidebar-footer">
       <a href="/home.html" class="nav-item"><i class="fas fa-arrow-left"></i>返回首页</a>
@@ -383,6 +386,51 @@
         <div class="card">
           <div class="card-header"><span class="card-title">注册用户</span></div>
           <div id="user-list"><div class="empty-state">加载中...</div></div>
+        </div>
+      </div>
+
+      <!-- ===== Students Tab ===== -->
+      <div class="tab-panel hidden" id="panel-students">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">学号列表（预注册）</span>
+            <button class="btn btn-danger btn-sm" id="clear-students-btn"><i class="fas fa-trash"></i> 清空</button>
+          </div>
+          <div id="student-list"><div class="empty-state">加载中...</div></div>
+        </div>
+      </div>
+
+      <!-- ===== Announcements Tab ===== -->
+      <div class="tab-panel hidden" id="panel-announcements">
+        <div class="card">
+          <div class="card-header"><span class="card-title">发布新公告</span></div>
+          <form id="announce-form">
+            <div class="form-group">
+              <label>公告标题 *</label>
+              <input type="text" id="announce-title" placeholder="输入公告标题" required>
+            </div>
+            <div class="form-group">
+              <label>公告内容 *</label>
+              <textarea id="announce-content" placeholder="输入公告内容..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-bullhorn"></i> 发布公告</button>
+          </form>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">已发布公告</span></div>
+          <div id="announce-list"><div class="empty-state">加载中...</div></div>
+        </div>
+      </div>
+
+      <!-- ===== Export Tab ===== -->
+      <div class="tab-panel hidden" id="panel-export">
+        <div class="card">
+          <div class="card-header"><span class="card-title">数据导出</span></div>
+          <p style="color:var(--text-hint); font-size:14px; margin-bottom:20px;">导出数据为CSV格式，可直接用Excel打开</p>
+          <div style="display:flex; gap:12px; flex-wrap:wrap;">
+            <a href="/api/admin/export/users" class="btn btn-primary" id="export-users-btn" target="_blank"><i class="fas fa-users"></i> 导出用户数据</a>
+            <a href="/api/admin/export/activities" class="btn btn-primary" id="export-activities-btn" target="_blank"><i class="fas fa-calendar-alt"></i> 导出活动数据</a>
+          </div>
         </div>
       </div>
 
@@ -524,7 +572,7 @@
   });
 
   // ========== Tab Navigation ==========
-  const tabMap = { dashboard: '概览', activities: '活动管理', users: '用户管理' };
+  const tabMap = { dashboard: '概览', activities: '活动管理', users: '用户管理', students: '学号管理', announcements: '系统公告', export: '数据导出' };
   document.querySelectorAll('.sidebar .nav-item[data-tab]').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.sidebar .nav-item[data-tab]').forEach(b => b.classList.remove('active'));
@@ -536,6 +584,9 @@
       if (tab === 'dashboard') loadDashboard();
       if (tab === 'activities') loadActivities();
       if (tab === 'users') loadUsers();
+      if (tab === 'students') loadStudents();
+      if (tab === 'announcements') loadAnnouncements();
+      if (tab === 'export') setupExportLinks();
     });
   });
 
@@ -619,7 +670,7 @@
   // ========== Create Activity ==========
   document.getElementById('create-form').addEventListener('submit', async e => {
     e.preventDefault();
-    const body = {
+      const body = {
       title: document.getElementById('create-title').value.trim(),
       type: document.getElementById('create-type').value,
       date: document.getElementById('create-date').value.trim(),
@@ -628,9 +679,9 @@
       description: document.getElementById('create-desc').value.trim()
     };
     try {
-      const res = await fetch('/api/activities', {
+      const res = await fetch('/api/admin/activities', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify(body)
       });
       const json = await res.json();
@@ -782,6 +833,129 @@
     const d = document.createElement('div');
     d.textContent = str;
     return d.innerHTML;
+  }
+
+  // ========== Students ==========
+  async function loadStudents() {
+    const container = document.getElementById('student-list');
+    try {
+      const res = await fetch('/api/admin/students', { headers: getHeaders() });
+      const json = await res.json();
+      if (!json.success) { container.innerHTML = '<div class="empty-state">加载失败</div>'; return; }
+      const ids = json.data || [];
+      if (ids.length === 0) {
+        container.innerHTML = '<div class="empty-state">暂无预注册学号</div>';
+        return;
+      }
+      container.innerHTML = `<table>
+        <thead><tr><th>#</th><th>学号</th></tr></thead>
+        <tbody>${ids.map((id, i) => {
+          return `<tr><td>${i + 1}</td><td><strong>${esc(id)}</strong></td></tr>`;
+        }).join('')}</tbody></table>
+        <p style="margin-top:12px; color:var(--text-hint); font-size:13px;">共 ${ids.length} 个学号</p>`;
+    } catch {
+      container.innerHTML = '<div class="empty-state">加载失败，请刷新</div>';
+    }
+  }
+
+  document.getElementById('clear-students-btn').addEventListener('click', async () => {
+    if (!confirm('确定要清空所有学号数据吗？此操作不可撤销。')) return;
+    try {
+      const res = await fetch('/api/admin/students', {
+        method: 'DELETE',
+        headers: getHeaders()
+      });
+      const json = await res.json();
+      if (json.success) {
+        showToast(json.message, 'success');
+        loadStudents();
+      } else {
+        showToast(json.message, 'error');
+      }
+    } catch {
+      showToast('网络错误', 'error');
+    }
+  });
+
+  // ========== Announcements ==========
+  async function loadAnnouncements() {
+    const container = document.getElementById('announce-list');
+    try {
+      const res = await fetch('/api/announcements');
+      const json = await res.json();
+      if (!json.success) { container.innerHTML = '<div class="empty-state">加载失败</div>'; return; }
+      const list = json.data || [];
+      if (list.length === 0) {
+        container.innerHTML = '<div class="empty-state">暂无公告</div>';
+        return;
+      }
+      container.innerHTML = list.map(a => {
+        const date = a.createdAt ? new Date(a.createdAt).toLocaleString('zh-CN') : '';
+        return `<div style="padding:16px 0; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:flex-start;">
+          <div style="flex:1;">
+            <div style="font-weight:700; font-size:15px; margin-bottom:6px;">${esc(a.title)}</div>
+            <div style="color:var(--text-hint); font-size:13px; margin-bottom:4px;">${esc(a.content)}</div>
+            <div style="color:#bbb; font-size:12px;">${date}</div>
+          </div>
+          <button class="btn btn-danger btn-sm" onclick="deleteAnnouncement('${a.id}')" style="margin-left:12px; flex-shrink:0;"><i class="fas fa-trash"></i></button>
+        </div>`;
+      }).join('');
+    } catch {
+      container.innerHTML = '<div class="empty-state">加载失败，请刷新</div>';
+    }
+  }
+
+  document.getElementById('announce-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const title = document.getElementById('announce-title').value.trim();
+    const content = document.getElementById('announce-content').value.trim();
+    try {
+      const res = await fetch('/api/admin/announcements', {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ title, content })
+      });
+      const json = await res.json();
+      if (json.success) {
+        showToast(json.message, 'success');
+        document.getElementById('announce-form').reset();
+        loadAnnouncements();
+      } else {
+        showToast(json.message, 'error');
+      }
+    } catch {
+      showToast('网络错误', 'error');
+    }
+  });
+
+  async function deleteAnnouncement(id) {
+    if (!confirm('确定要删除这条公告吗？')) return;
+    try {
+      const res = await fetch('/api/admin/announcements/' + id, {
+        method: 'DELETE',
+        headers: getHeaders()
+      });
+      const json = await res.json();
+      if (json.success) {
+        showToast(json.message, 'success');
+        loadAnnouncements();
+      } else {
+        showToast(json.message, 'error');
+      }
+    } catch {
+      showToast('网络错误', 'error');
+    }
+  }
+
+  // ========== Export ==========
+  function setupExportLinks() {
+    // 在导出链接上附加admin token作为query参数
+    const usersBtn = document.getElementById('export-users-btn');
+    const actsBtn = document.getElementById('export-activities-btn');
+    if (adminToken) {
+      usersBtn.href = '/api/admin/export/users?token=' + adminToken;
+      actsBtn.href = '/api/admin/export/activities?token=' + adminToken;
+    }
   }
 
   // ========== Init ==========

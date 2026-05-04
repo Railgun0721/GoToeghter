@@ -1,0 +1,196 @@
+/* ========== 搭子行 公共样式 ========== */
+
+/* ---------- Toast 通知 ---------- */
+.dzh-toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s, transform 0.3s;
+  max-width: 90vw;
+  text-align: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+.dzh-toast.show {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+.dzh-toast.success { background: #10b981; }
+.dzh-toast.error { background: #ef4444; }
+.dzh-toast.info { background: #3b82f6; }
+
+/* ---------- 活动卡片通用样式 ---------- */
+.activity-card {
+  background: #ffffff;
+  border: 1px solid #eeeeee;
+  border-radius: 24px;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+  transition: 0.2s;
+  cursor: pointer;
+}
+.activity-card:active { transform: scale(0.985); }
+
+.activity-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  flex-shrink: 0;
+}
+.activity-info { flex: 1; min-width: 0; }
+.tag {
+  display: inline-block;
+  background: #f3f4f6;
+  color: #1f1f1f;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 12px;
+  margin-bottom: 6px;
+}
+.activity-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 4px;
+}
+.activity-meta {
+  font-size: 13px;
+  color: #6b7280;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.activity-meta span {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.activity-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.people-count {
+  font-size: 14px;
+  font-weight: 500;
+  color: #4b5563;
+  background: #f3f4f6;
+  padding: 5px 12px;
+  border-radius: 20px;
+}
+.join-btn {
+  background: #000;
+  color: white;
+  border: none;
+  border-radius: 24px;
+  padding: 10px 20px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-family: inherit;
+}
+.join-btn:active { background: #222; }
+.join-btn:disabled { background: #d1d5db; cursor: not-allowed; }
+.join-btn.joined { background: #10b981; }
+.join-btn.my-activity { background: #f59e0b; }
+
+/* ---------- 骨架屏 ---------- */
+.skeleton-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px;
+  border-radius: 24px;
+  background: #fafafa;
+  border: 1px solid #f0f0f0;
+}
+.skel-circle {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  background: #e5e7eb;
+  flex-shrink: 0;
+}
+.skel-lines {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.skel-line {
+  height: 14px;
+  background: #e5e7eb;
+  border-radius: 7px;
+}
+.skel-line.w40 { width: 40%; }
+.skel-line.w60 { width: 60%; }
+.skel-line.w80 { width: 80%; }
+
+/* ---------- 底部导航 ---------- */
+.bottom-nav {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 12px 16px 20px;
+  background: white;
+  border-top: 1px solid #f0f0f0;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+}
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #9ca3af;
+  transition: 0.2s;
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: inherit;
+  padding: 4px 12px;
+  text-decoration: none;
+}
+.nav-item i { font-size: 20px; }
+.nav-item.active { color: #1f1f1f; font-weight: 600; }
+
+/* ---------- 空状态 ---------- */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #bbb;
+  font-size: 16px;
+}
+
+/* ---------- 消息提示 ---------- */
+.msg {
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 14px;
+  display: none;
+}
+.msg.success { display: block; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+.msg.error { display: block; background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }

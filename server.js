@@ -4,15 +4,41 @@ const path = require('path');
 const crypto = require('crypto');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 const ACTIVITIES_FILE = path.join(__dirname, 'activities.json');
 const USERS_FILE = path.join(__dirname, 'users.json');
-const ADMIN_SECRET = 'dzh-admin-2026';
+const ADMIN_SECRET = process.env.ADMIN_SECRET || 'dzh-admin-2026';
+
+// ---------- 简易限流器 ----------
+const rateLimitStore = {};
+function rateLimit(key, windowMs = 60000, max = 60) {
+  const now = Date.now();
+  if (!rateLimitStore[key]) rateLimitStore[key] = { count: 0, resetAt: now + windowMs };
+  const record = rateLimitStore[key];
+  if (now > record.resetAt) { record.count = 0; record.resetAt = now + windowMs; }
+  record.count++;
+  return record.count <= max;
+}
+// 定期清理过期记录
+setInterval(() => {
+  const now = Date.now();
+  for (const key in rateLimitStore) {
+    if (rateLimitStore[key].resetAt < now) delete rateLimitStore[key];
+  }
+}, 60000);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
+
+// ---------- 全局限流中间件 ----------
+app.use('/api/', (req, res, next) => {
+  if (!rateLimit(req.ip || 'unknown', 60000, 120)) {
+    return res.status(429).json({ success: false, message: '请求过于频繁，请稍后再试' });
+  }
+  next();
+});
 
 // ---------- 初始化数据文件 ----------
 function initActivities() {
@@ -74,6 +100,10 @@ function authMiddleware(req, res, next) {
     return res.status(401).json({ success: false, message: '登录已过期，请重新登录' });
   }
 
+  if (user.banned) {
+    return res.status(403).json({ success: false, message: '你的账号已被封禁，请联系管理员' });
+  }
+
   req.user = user;
   next();
 }
@@ -97,8 +127,11 @@ app.post('/api/auth/send-code', (req, res) => {
   res.json({ success: true, message: '验证码已发送', debugCode: code });
 });
 
-// 登录/注册
+// 登录/注册（限流：每手机号每分钟5次）
 app.post('/api/auth/login', (req, res) => {
+  if (!rateLimit('login:' + (req.body.phone || req.ip), 60000, 5)) {
+    return res.status(429).json({ success: false, message: '登录尝试过于频繁，请稍后再试' });
+  }
   const { phone, code } = req.body;
   if (!phone || !code) {
     return res.json({ success: false, message: '手机号和验证码不能为空' });
@@ -146,7 +179,8 @@ app.post('/api/auth/login', (req, res) => {
     data: {
       phone: user.phone,
       nickname: user.nickname,
-      token: user.token
+      token: user.token,
+      createdAt: user.createdAt
     }
   });
 });
@@ -248,6 +282,28 @@ app.post('/api/activities/:id/join', authMiddleware, (req, res) => {
   res.json({ success: true, data: act, message: '加入成功！' });
 });
 
+// 退出活动
+app.post('/api/activities/:id/leave', authMiddleware, (req, res) => {
+  const act = activities.find(a => a.id === req.params.id);
+  if (!act) {
+    return res.status(404).json({ success: false, message: '活动不存在' });
+  }
+
+  const pIdx = act.participants.indexOf(req.user.phone);
+  if (pIdx === -1) {
+    return res.status(400).json({ success: false, message: '你还没有加入这个活动' });
+  }
+
+  if (act.creator === req.user.phone) {
+    return res.status(400).json({ success: false, message: '活动创建者不能退出活动' });
+  }
+
+  act.participants.splice(pIdx, 1);
+  act.currentParticipants = Math.max(0, act.currentParticipants - 1);
+  saveActivities();
+  res.json({ success: true, data: act, message: '已退出活动' });
+});
+
 app.delete('/api/activities/:id', authMiddleware, (req, res) => {
   const idx = activities.findIndex(a => a.id === req.params.id);
   if (idx === -1) {
@@ -279,12 +335,38 @@ app.post('/api/admin/login', (req, res) => {
 });
 
 function adminMiddleware(req, res, next) {
-  const token = req.headers.authorization?.replace('Bearer ', '') || req.headers['x-admin-token'];
+  const token = req.headers.authorization?.replace('Bearer ', '') || req.headers['x-admin-token'] || req.query.token;
   if (!token || !adminTokens.includes(token)) {
     return res.status(401).json({ success: false, message: '请先登录管理后台' });
   }
   next();
 }
+
+// 管理员直接创建活动
+app.post('/api/admin/activities', adminMiddleware, (req, res) => {
+  const { title, type, date, location, maxParticipants, description } = req.body;
+  if (!title || !type || !date || !location) {
+    return res.status(400).json({ success: false, message: '请填写完整的活动信息（标题、类型、日期、地点为必填）' });
+  }
+
+  const newAct = {
+    id: String(Date.now()),
+    title,
+    type,
+    date,
+    location,
+    maxParticipants: parseInt(maxParticipants, 10) || 10,
+    currentParticipants: 0,
+    participants: [],
+    description: description || '',
+    creator: 'admin'
+  };
+
+  activities.push(newAct);
+  saveActivities();
+  console.log(`[管理员] 新活动创建：${title}`);
+  res.json({ success: true, data: newAct, message: '活动发布成功！' });
+});
 
 app.get('/api/admin/stats', adminMiddleware, (_req, res) => {
   const totalActivities = activities.length;
@@ -332,6 +414,125 @@ app.put('/api/admin/users/:phone', adminMiddleware, (req, res) => {
   user.banned = !user.banned;
   saveUsers();
   res.json({ success: true, data: user, message: user.banned ? '用户已封禁' : '用户已解封' });
+});
+
+// ---------- 学号管理 API ----------
+app.get('/api/admin/students', adminMiddleware, (_req, res) => {
+  try {
+    if (!fs.existsSync('students.txt')) {
+      return res.json({ success: true, data: [] });
+    }
+    const content = fs.readFileSync('students.txt', 'utf-8').trim();
+    const ids = content ? content.split('\n').filter(Boolean) : [];
+    res.json({ success: true, data: ids });
+  } catch (err) {
+    res.json({ success: true, data: [] });
+  }
+});
+
+app.delete('/api/admin/students', adminMiddleware, (_req, res) => {
+  fs.writeFileSync('students.txt', '', 'utf-8');
+  res.json({ success: true, message: '学号列表已清空' });
+});
+
+// ---------- 系统公告 API ----------
+const ANNOUNCEMENTS_FILE = path.join(__dirname, 'announcements.json');
+
+function loadAnnouncements() {
+  if (!fs.existsSync(ANNOUNCEMENTS_FILE)) {
+    fs.writeFileSync(ANNOUNCEMENTS_FILE, '[]', 'utf-8');
+    return [];
+  }
+  return JSON.parse(fs.readFileSync(ANNOUNCEMENTS_FILE, 'utf-8'));
+}
+
+app.get('/api/announcements', (_req, res) => {
+  const list = loadAnnouncements();
+  res.json({ success: true, data: list.filter(a => a.visible) });
+});
+
+app.post('/api/admin/announcements', adminMiddleware, (req, res) => {
+  const { title, content } = req.body;
+  if (!title || !content) {
+    return res.status(400).json({ success: false, message: '标题和内容不能为空' });
+  }
+  const list = loadAnnouncements();
+  const item = {
+    id: String(Date.now()),
+    title,
+    content,
+    visible: true,
+    createdAt: new Date().toISOString()
+  };
+  list.push(item);
+  fs.writeFileSync(ANNOUNCEMENTS_FILE, JSON.stringify(list, null, 2), 'utf-8');
+  res.json({ success: true, data: item, message: '公告发布成功' });
+});
+
+app.delete('/api/admin/announcements/:id', adminMiddleware, (req, res) => {
+  const list = loadAnnouncements();
+  const idx = list.findIndex(a => a.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ success: false, message: '公告不存在' });
+  list.splice(idx, 1);
+  fs.writeFileSync(ANNOUNCEMENTS_FILE, JSON.stringify(list, null, 2), 'utf-8');
+  res.json({ success: true, message: '公告已删除' });
+});
+
+// ---------- 数据导出 API ----------
+app.get('/api/admin/export/users', adminMiddleware, (_req, res) => {
+  const userList = Object.entries(users).map(([phone, u]) => ({
+    phone,
+    nickname: u.nickname,
+    createdAt: u.createdAt,
+    banned: u.banned ? '是' : '否'
+  }));
+  // BOM for Excel UTF-8
+  let csv = '\uFEFF手机号,昵称,注册时间,是否封禁\n';
+  userList.forEach(u => {
+    csv += `${u.phone},${u.nickname},${u.createdAt || ''},${u.banned}\n`;
+  });
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename=users_export.csv');
+  res.send(csv);
+});
+
+app.get('/api/admin/export/activities', adminMiddleware, (_req, res) => {
+  let csv = '\uFEFF标题,类型,日期,地点,最大人数,当前人数,创建者,描述\n';
+  activities.forEach(a => {
+    csv += `${a.title},${a.type},${a.date},${a.location},${a.maxParticipants},${a.currentParticipants},${a.creator || ''},${(a.description || '').replace(/,/g, '，')}\n`;
+  });
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename=activities_export.csv');
+  res.send(csv);
+});
+
+// ---------- 活动类型统计 API ----------
+app.get('/api/admin/stats/types', adminMiddleware, (_req, res) => {
+  const typeCount = {};
+  activities.forEach(a => {
+    typeCount[a.type] = (typeCount[a.type] || 0) + 1;
+  });
+  res.json({ success: true, data: typeCount });
+});
+
+// ---------- 用户详情 API ----------
+app.get('/api/admin/users/:phone/activities', adminMiddleware, (req, res) => {
+  const phone = req.params.phone;
+  const userActs = activities.filter(a =>
+    a.creator === phone || (a.participants && a.participants.includes(phone))
+  );
+  res.json({ success: true, data: userActs });
+});
+
+// ---------- 404 处理 ----------
+app.use((_req, res) => {
+  res.status(404).json({ success: false, message: '接口不存在' });
+});
+
+// ---------- 全局错误处理 ----------
+app.use((err, _req, res, _next) => {
+  console.error('服务器错误：', err);
+  res.status(500).json({ success: false, message: '服务器内部错误，请稍后再试' });
 });
 
 // ---------- 启动 ----------

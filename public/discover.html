@@ -5,263 +5,385 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>搭子行 · 发现活动</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="common.css">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', 'PingFang SC', 'Microsoft YaHei', sans-serif;
       background: #f2f3f7;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      padding: 0;
+      overflow: hidden;
+      -webkit-tap-highlight-color: transparent;
+      margin: 0; padding: 0;
     }
 
     .app-container {
       width: 100%;
-      max-width: 480px;
-      background: white;
-      min-height: 100vh;
+      height: 100vh;
+      height: 100dvh;
+      position: relative;
+      overflow: hidden;
+      background: #f2f3f7;
+    }
+
+    /* ========== 地图区域 ========== */
+    .map-area {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 100%;
+      background: #e8ecf1;
+      z-index: 1;
+    }
+    #baidu-map {
+      width: 100%;
+      height: 100%;
+    }
+    /* 地图占位符（接入百度地图前显示） */
+    .map-placeholder {
+      width: 100%;
+      height: 100%;
       display: flex;
       flex-direction: column;
-    }
-
-    /* 头部 */
-    .app-header {
-      display: flex;
-      justify-content: space-between;
       align-items: center;
-      padding: 20px 20px 12px;
-      background: white;
+      justify-content: center;
+      background: linear-gradient(135deg, #e0e7f7 0%, #d4dff5 50%, #c8d5f0 100%);
+      position: relative;
+      overflow: hidden;
     }
-    .app-title {
-      font-size: 28px;
-      font-weight: 700;
-      color: #121212;
-      letter-spacing: -0.5px;
+    .map-placeholder::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, transparent 49.5%, rgba(180,195,220,0.3) 49.5%, rgba(180,195,220,0.3) 50.5%, transparent 50.5%),
+        linear-gradient(0deg, transparent 49.5%, rgba(180,195,220,0.3) 49.5%, rgba(180,195,220,0.3) 50.5%, transparent 50.5%);
+      background-size: 40px 40px;
     }
-    .school-badge {
-      font-size: 14px;
-      color: #6b7280;
-      background: #f3f4f6;
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-weight: 500;
+    .map-placeholder-icon {
+      font-size: 48px;
+      color: #8b9cc7;
+      margin-bottom: 16px;
+      z-index: 1;
+    }
+    .map-placeholder-text {
+      font-size: 16px;
+      color: #7a8bb5;
+      font-weight: 600;
+      z-index: 1;
+    }
+    .map-placeholder-sub {
+      font-size: 13px;
+      color: #9aaace;
+      margin-top: 6px;
+      z-index: 1;
     }
 
-    /* 搜索栏 */
-    .search-area {
-      padding: 0 20px 12px;
+    /* 顶部浮动搜索栏 */
+    .top-search {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      z-index: 10;
+      padding: 12px 16px;
       display: flex;
-      gap: 8px;
+      gap: 10px;
+      align-items: center;
     }
-    .search-bar {
+    .search-pill {
       flex: 1;
       display: flex;
       align-items: center;
-      background: #f4f5f7;
-      border-radius: 30px;
-      padding: 10px 18px;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(12px);
+      border-radius: 24px;
+      padding: 10px 16px;
       gap: 10px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
     }
-    .search-bar i {
-      color: #9ca3af;
-      font-size: 16px;
-    }
-    .search-bar input {
+    .search-pill i { color: #9ca3af; font-size: 15px; }
+    .search-pill input {
       flex: 1;
       border: none;
       background: transparent;
       font-size: 15px;
       outline: none;
       color: #1f2937;
-    }
-    .search-bar input::placeholder {
-      color: #9ca3af;
-    }
-    .filter-btn {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      background: white;
-      border: 1px solid #e5e7eb;
-      border-radius: 24px;
-      padding: 10px 16px;
-      font-size: 14px;
-      font-weight: 500;
-      color: #374151;
-      white-space: nowrap;
-      cursor: pointer;
       font-family: inherit;
     }
-    .filter-btn:active { background: #f3f4f6; }
+    .search-pill input::placeholder { color: #9ca3af; }
 
-    /* 标签栏 */
-    .tabs {
-      display: flex;
-      gap: 8px;
-      padding: 0 20px 12px;
-      border-bottom: 1px solid #f0f0f0;
-    }
-    .tab {
-      font-size: 15px;
-      font-weight: 500;
-      color: #6b7280;
-      padding: 8px 18px;
-      border-radius: 20px;
-      background: transparent;
-      cursor: pointer;
-      transition: 0.2s;
+    .locate-btn {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(12px);
       border: none;
-      font-family: inherit;
-    }
-    .tab.active {
-      background: #1f1f1f;
-      color: white;
-      font-weight: 600;
-    }
-
-    /* 活动列表 */
-    .activity-list {
-      flex: 1;
-      padding: 16px 20px 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      overflow-y: auto;
-    }
-
-    .activity-card {
-      background: white;
-      border: 1px solid #eeeeee;
-      border-radius: 24px;
-      padding: 18px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.02);
-      transition: 0.15s;
-      cursor: pointer;
-    }
-    .activity-card:active { transform: scale(0.985); }
-
-    .activity-icon {
-      width: 56px;
-      height: 56px;
-      border-radius: 18px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 26px;
+      font-size: 18px;
+      color: #000;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      cursor: pointer;
       flex-shrink: 0;
     }
-    .activity-info {
-      flex: 1;
-      min-width: 0;
+
+    /* 类型筛选横条 */
+    .type-scroller {
+      position: absolute;
+      top: 64px;
+      left: 0; right: 0;
+      z-index: 10;
+      padding: 0 16px;
+      overflow-x: auto;
+      white-space: nowrap;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
     }
-    .tag {
-      display: inline-block;
-      background: #f0f4ff;
-      color: #3b5de7;
-      font-size: 12px;
+    .type-scroller::-webkit-scrollbar { display: none; }
+    .type-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 7px 14px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(12px);
+      border: none;
+      font-size: 13px;
+      font-weight: 500;
+      color: #374151;
+      cursor: pointer;
+      font-family: inherit;
+      margin-right: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      transition: all 0.2s;
+    }
+    .type-chip:active { transform: scale(0.95); }
+    .type-chip.active {
+      background: #000;
+      color: #fff;
       font-weight: 600;
-      padding: 4px 10px;
-      border-radius: 12px;
-      margin-bottom: 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
-    .activity-title {
+    .type-chip i { font-size: 13px; }
+
+    /* ========== 底部面板 ========== */
+    .bottom-sheet {
+      position: absolute;
+      left: 0; right: 0;
+      bottom: 0;
+      z-index: 20;
+      background: #fff;
+      border-radius: 24px 24px 0 0;
+      box-shadow: 0 -4px 24px rgba(0,0,0,0.08);
+      display: flex;
+      flex-direction: column;
+      max-height: 60vh;
+      transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+      transform: translateY(calc(100% - 180px));
+    }
+    .bottom-sheet.expanded {
+      transform: translateY(0);
+    }
+    .bottom-sheet.collapsed {
+      transform: translateY(calc(100% - 80px));
+    }
+
+    /* 拖拽把手 */
+    .sheet-handle {
+      padding: 12px 0 8px;
+      display: flex;
+      justify-content: center;
+      cursor: grab;
+      flex-shrink: 0;
+    }
+    .sheet-handle:active { cursor: grabbing; }
+    .handle-bar {
+      width: 36px; height: 4px;
+      background: #d1d5db;
+      border-radius: 2px;
+    }
+
+    /* 面板头部 */
+    .sheet-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 20px 12px;
+      flex-shrink: 0;
+    }
+    .sheet-title {
       font-size: 18px;
       font-weight: 700;
       color: #111827;
-      margin-bottom: 4px;
     }
-    .activity-meta {
+    .sheet-count {
       font-size: 13px;
-      color: #6b7280;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 10px;
+      color: #9ca3af;
+      font-weight: 500;
     }
-    .activity-meta span {
+
+    /* 活动列表 */
+    .sheet-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* 水平活动卡片 */
+    .map-activity-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: #fff;
+      border: 1px solid #f0f0f0;
+      border-radius: 18px;
+      padding: 14px;
+      transition: all 0.15s;
+      cursor: pointer;
+    }
+    .map-activity-card:active {
+      background: #f9fafb;
+      transform: scale(0.99);
+    }
+    .map-card-icon {
+      width: 48px; height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+    .map-card-body {
+      flex: 1;
+      min-width: 0;
+    }
+    .map-card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .map-card-meta {
+      font-size: 12px;
+      color: #9ca3af;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .map-card-meta span {
       display: flex;
       align-items: center;
       gap: 3px;
     }
-    .activity-bottom {
+    .map-card-right {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+      flex-shrink: 0;
     }
-    .people-count {
-      font-size: 14px;
-      font-weight: 500;
-      color: #4b5563;
-      background: #f3f4f6;
-      padding: 5px 12px;
-      border-radius: 20px;
-    }
-    .join-btn {
-      background: #1f1f1f;
-      color: white;
-      border: none;
-      border-radius: 24px;
-      padding: 10px 20px;
+    .map-card-tag {
+      font-size: 11px;
       font-weight: 600;
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 8px;
+      background: #f3f4f6;
+      color: #1f1f1f;
+    }
+    .map-card-people {
+      font-size: 12px;
+      font-weight: 500;
+      color: #6b7280;
+    }
+    .map-card-join {
+      padding: 6px 14px;
+      border-radius: 16px;
+      background: #000;
+      color: #fff;
+      border: none;
+      font-size: 12px;
+      font-weight: 600;
       cursor: pointer;
       font-family: inherit;
+      transition: all 0.15s;
     }
-    .join-btn:active { background: #333; }
-    .join-btn:disabled { background: #d1d5db; cursor: not-allowed; }
-    .join-btn.joined { background: #10b981; }
-    .join-btn.my-activity { background: #f59e0b; }
+    .map-card-join:active { background: #222; }
+    .map-card-join:disabled { background: #d1d5db; cursor: not-allowed; }
+    .map-card-join.joined { background: #10b981; }
+    .map-card-join.full { background: #e5e7eb; color: #9ca3af; }
 
-    .empty-state {
-      text-align: center; padding: 40px 20px; color: #bbb; font-size: 16px;
+    /* 地图上的标记气泡 */
+    .map-marker-bubble {
+      position: absolute;
+      z-index: 5;
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(10px);
+      border-radius: 14px;
+      padding: 8px 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #111827;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .map-marker-bubble:active { transform: scale(0.95); }
+    .map-marker-bubble .marker-icon {
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+    .map-marker-bubble .marker-count {
+      font-size: 11px;
+      color: #9ca3af;
+      font-weight: 500;
     }
 
-    .skeleton-card {
-      display: flex; align-items: center; gap: 16px;
-      padding: 18px; border-radius: 24px;
-      background: #fafafa; border: 1px solid #f0f0f0;
-    }
-    .skel-circle {
-      width: 56px; height: 56px; border-radius: 18px;
-      background: #e5e7eb; flex-shrink: 0;
-    }
-    .skel-lines { flex: 1; display: flex; flex-direction: column; gap: 8px; }
-    .skel-line { height: 14px; background: #e5e7eb; border-radius: 7px; }
-    .skel-line.w40 { width: 40%; }
-    .skel-line.w60 { width: 60%; }
-    .skel-line.w80 { width: 80%; }
-
-    /* 底部导航 */
+    /* ========== 底部导航 ========== */
     .bottom-nav {
       display: flex;
       justify-content: space-around;
       align-items: center;
-      padding: 12px 16px 24px;
+      padding: 10px 16px 20px;
       background: white;
       border-top: 1px solid #f0f0f0;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      z-index: 30;
     }
     .nav-item {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 4px;
+      gap: 3px;
       font-size: 11px;
       color: #9ca3af;
+      transition: 0.2s;
       cursor: pointer;
-      text-decoration: none;
-      background: none;
       border: none;
+      background: none;
       font-family: inherit;
       padding: 4px 12px;
+      text-decoration: none;
     }
     .nav-item i { font-size: 20px; }
     .nav-item.active { color: #1f1f1f; font-weight: 600; }
@@ -269,44 +391,67 @@
 </head>
 <body>
   <div class="app-container">
-    <!-- 头部 -->
-    <div class="app-header">
-      <span class="app-title">搭子行</span>
-      <span class="school-badge">安丘二中</span>
+
+    <!-- ========== 地图区域 ========== -->
+    <div class="map-area">
+      <!-- 百度地图容器（接入后使用） -->
+      <div id="baidu-map" style="display:none;"></div>
+      <!-- 占位符（接入前显示） -->
+      <div class="map-placeholder" id="map-placeholder">
+        <div class="map-placeholder-icon"><i class="fas fa-map-marked-alt"></i></div>
+        <div class="map-placeholder-text">地图区域</div>
+        <div class="map-placeholder-sub">即将接入百度地图</div>
+      </div>
+
+      <!-- 地图上的活动标记气泡（示例位置） -->
+      <div class="map-marker-bubble" style="top:35%; left:20%;" onclick="scrollToActivity('1')">
+        <div class="marker-icon" style="background:linear-gradient(135deg, #e0f2e9, #b8e0ce); color:#2d6a4f;">
+          <i class="fas fa-hiking"></i>
+        </div>
+        <span>青云山徒步</span>
+      </div>
     </div>
 
-    <!-- 搜索栏 -->
-    <div class="search-area">
-      <div class="search-bar">
+    <!-- ========== 顶部搜索栏 ========== -->
+    <div class="top-search">
+      <div class="search-pill">
         <i class="fas fa-search"></i>
-        <input type="text" id="search-input" placeholder="搜索活动、地点或搭子">
+        <input type="text" id="search-input" placeholder="搜索活动、地点...">
       </div>
-      <button class="filter-btn" id="filter-btn">
-        筛选 <i class="fas fa-chevron-down" style="font-size:10px;"></i>
+      <button class="locate-btn" onclick="dzhToast('定位功能即将上线', 'info')">
+        <i class="fas fa-crosshairs"></i>
       </button>
     </div>
 
-    <!-- 标签栏 -->
-    <div class="tabs">
-      <button class="tab active" data-tab="all">推荐</button>
-      <button class="tab" data-tab="nearby">附近</button>
-      <button class="tab" data-tab="school">同校</button>
-      <button class="tab" data-tab="latest">最新</button>
+    <!-- ========== 类型筛选 ========== -->
+    <div class="type-scroller" id="type-scroller">
+      <button class="type-chip active" data-type=""><i class="fas fa-fire"></i> 全部</button>
+      <button class="type-chip" data-type="徒步"><i class="fas fa-hiking"></i> 徒步</button>
+      <button class="type-chip" data-type="骑行"><i class="fas fa-bicycle"></i> 骑行</button>
+      <button class="type-chip" data-type="露营"><i class="fas fa-campground"></i> 露营</button>
+      <button class="type-chip" data-type="跑步"><i class="fas fa-running"></i> 跑步</button>
+      <button class="type-chip" data-type="篮球"><i class="fas fa-basketball-ball"></i> 篮球</button>
+      <button class="type-chip" data-type="足球"><i class="fas fa-futbol"></i> 足球</button>
+      <button class="type-chip" data-type="羽毛球"><i class="fas fa-baseball-ball"></i> 羽毛球</button>
+      <button class="type-chip" data-type="桌游"><i class="fas fa-chess-board"></i> 桌游</button>
+      <button class="type-chip" data-type="自习"><i class="fas fa-book"></i> 自习</button>
+      <button class="type-chip" data-type="聚餐"><i class="fas fa-utensils"></i> 聚餐</button>
     </div>
 
-    <!-- 活动列表 -->
-    <div class="activity-list" id="activities-container">
-      <div class="skeleton-card">
-        <div class="skel-circle"></div>
-        <div class="skel-lines">
-          <div class="skel-line w40"></div>
-          <div class="skel-line w60"></div>
-          <div class="skel-line w80"></div>
-        </div>
+    <!-- ========== 底部面板 ========== -->
+    <div class="bottom-sheet" id="bottom-sheet">
+      <div class="sheet-handle" id="sheet-handle">
+        <div class="handle-bar"></div>
+      </div>
+      <div class="sheet-header">
+        <span class="sheet-title">附近活动</span>
+        <span class="sheet-count" id="activity-count">加载中...</span>
+      </div>
+      <div class="sheet-list" id="activities-container">
       </div>
     </div>
 
-    <!-- 底部导航 -->
+    <!-- ========== 底部导航 ========== -->
     <div class="bottom-nav">
       <button class="nav-item active" data-nav="discover">
         <i class="fas fa-compass"></i>
@@ -325,226 +470,232 @@
         <span>我的</span>
       </button>
     </div>
+
   </div>
 
-  <script>
+<script src="common.js"></script>
+<script>
     // ========== 登录检查 ==========
-    const token = localStorage.getItem('token');
-    let user = null;
-    try {
-      const u = localStorage.getItem('user');
-      if (u) user = JSON.parse(u);
-    } catch (e) {}
+    var auth = dzhRequireLogin();
+    if (!auth) throw new Error('未登录');
+    var token = auth.token;
+    var user = auth.data;
 
-    if (!token || !user) {
-      window.location.href = '/login.html';
-    }
-
-    // ========== 类型图标映射 ==========
-    const typeIcons = {
-      '徒步':   { icon: 'fa-hiking',          bg: 'linear-gradient(135deg, #e0f2e9, #b8e0ce)', color: '#2d6a4f' },
-      '骑行':   { icon: 'fa-bicycle',         bg: 'linear-gradient(135deg, #e8f4f8, #b8dbe8)', color: '#1e5a7a' },
-      '露营':   { icon: 'fa-campground',      bg: 'linear-gradient(135deg, #fef3e0, #f5d6a3)', color: '#8b6914' },
-      '跑步':   { icon: 'fa-running',         bg: 'linear-gradient(135deg, #ffe0e6, #f5b8c5)', color: '#a0304a' },
-      '篮球':   { icon: 'fa-basketball-ball', bg: 'linear-gradient(135deg, #ffe8d6, #f5c4a0)', color: '#c0601e' },
-      '足球':   { icon: 'fa-futbol',          bg: 'linear-gradient(135deg, #e0f0e0, #b8d8b8)', color: '#2d5a2d' },
-      '羽毛球': { icon: 'fa-baseball-ball',   bg: 'linear-gradient(135deg, #f0f0ff, #d0d0f8)', color: '#4040a0' },
-      '桌游':   { icon: 'fa-chess-board',     bg: 'linear-gradient(135deg, #f8e8ff, #e0c0f0)', color: '#6a3d8a' },
-      '自习':   { icon: 'fa-book',            bg: 'linear-gradient(135deg, #e8f0f8, #c0d8f0)', color: '#2d4a7a' },
-      '聚餐':   { icon: 'fa-utensils',        bg: 'linear-gradient(135deg, #ffe8d0, #f5c8a0)', color: '#b85c1e' },
-      '其他':   { icon: 'fa-star',            bg: 'linear-gradient(135deg, #f8f8e8, #e8e8c0)', color: '#6a6a2d' },
-    };
-
-    function getTypeStyle(type) {
-      return typeIcons[type] || typeIcons['其他'];
-    }
-
-    function escapeHtml(str) {
-      const div = document.createElement('div');
-      div.textContent = str;
-      return div.innerHTML;
-    }
+    // ========== 底部导航 ==========
+    dzhInitBottomNav('discover');
 
     // ========== 搜索 ==========
-    const searchInput = document.getElementById('search-input');
-    let searchTerm = '';
+    var searchInput = document.getElementById('search-input');
+    var searchTerm = '';
+    var filterType = '';
 
-    searchInput.addEventListener('input', function () {
+    searchInput.addEventListener('input', function() {
       searchTerm = this.value.trim().toLowerCase();
       loadActivities();
     });
 
-    // ========== 筛选按钮 ==========
-    document.getElementById('filter-btn').addEventListener('click', function () {
-      const types = ['全部', '徒步', '骑行', '露营', '跑步', '篮球', '足球', '羽毛球', '桌游', '自习', '聚餐'];
-      const choice = prompt('按类型筛选：\n' + types.join(' / '));
-      if (choice) {
-        searchInput.value = choice;
-        searchTerm = choice.trim().toLowerCase();
+    // ========== 类型筛选 ==========
+    var typeScroller = document.getElementById('type-scroller');
+    typeScroller.querySelectorAll('.type-chip').forEach(function(chip) {
+      chip.addEventListener('click', function() {
+        typeScroller.querySelectorAll('.type-chip').forEach(function(c) { c.classList.remove('active'); });
+        this.classList.add('active');
+        filterType = this.dataset.type;
         loadActivities();
+      });
+    });
+
+    // ========== 底部面板拖拽 ==========
+    var sheet = document.getElementById('bottom-sheet');
+    var sheetHandle = document.getElementById('sheet-handle');
+    var startY = 0, startTranslate = 0, isDragging = false;
+
+    function getTranslateY() {
+      var style = window.getComputedStyle(sheet);
+      var matrix = new DOMMatrixReadOnly(style.transform);
+      return matrix.m42;
+    }
+
+    sheetHandle.addEventListener('touchstart', function(e) {
+      startY = e.touches[0].clientY;
+      startTranslate = getTranslateY();
+      isDragging = true;
+      sheet.style.transition = 'none';
+    }, { passive: true });
+
+    document.addEventListener('touchmove', function(e) {
+      if (!isDragging) return;
+      var deltaY = e.touches[0].clientY - startY;
+      var newY = startTranslate + deltaY;
+      // 限制范围：完全展开 到 只露出把手
+      var minTranslate = 0;
+      var maxTranslate = sheet.offsetHeight - 80;
+      newY = Math.max(minTranslate, Math.min(maxTranslate, newY));
+      sheet.style.transform = 'translateY(' + newY + 'px)';
+    }, { passive: true });
+
+    document.addEventListener('touchend', function() {
+      if (!isDragging) return;
+      isDragging = false;
+      sheet.style.transition = 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)';
+      var current = getTranslateY();
+      var threshold = (sheet.offsetHeight - 80) / 2;
+      if (current < threshold) {
+        sheet.classList.add('expanded');
+        sheet.classList.remove('collapsed');
+      } else {
+        sheet.classList.remove('expanded');
+        sheet.classList.remove('collapsed');
       }
     });
 
-    // ========== Tab 切换 ==========
-    let currentTab = 'all';
-
-    document.querySelectorAll('.tab').forEach(tab => {
-      tab.addEventListener('click', function () {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        this.classList.add('active');
-        currentTab = this.dataset.tab;
-        loadActivities();
-        document.querySelector('.activity-list').scrollTop = 0;
-      });
-    });
-
-    // ========== 底部导航 ==========
-    document.querySelectorAll('.nav-item').forEach(item => {
-      item.addEventListener('click', function () {
-        const nav = this.dataset.nav;
-        if (nav === 'discover') {
-          // 已在当前页
-        } else if (nav === 'home') {
-          window.location.href = '/home.html';
-        } else if (nav === 'messages') {
-          alert('消息功能即将上线 🚀');
-        } else if (nav === 'profile') {
-          window.location.href = '/profile.html';
-        }
-      });
+    // 点击把手切换展开/收起
+    sheetHandle.addEventListener('click', function() {
+      if (sheet.classList.contains('expanded')) {
+        sheet.classList.remove('expanded');
+      } else {
+        sheet.classList.add('expanded');
+      }
     });
 
     // ========== 加载活动 ==========
-    const container = document.getElementById('activities-container');
+    var container = document.getElementById('activities-container');
+    var countEl = document.getElementById('activity-count');
+
+    function scrollToActivity(id) {
+      var card = container.querySelector('[data-id="' + id + '"]');
+      if (card) {
+        sheet.classList.add('expanded');
+        setTimeout(function() {
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          card.style.background = '#f0f4ff';
+          setTimeout(function() { card.style.background = '#fff'; }, 1500);
+        }, 350);
+      }
+    }
 
     async function loadActivities() {
-      // 骨架屏
-      container.innerHTML = `
-        <div class="skeleton-card">
-          <div class="skel-circle"></div>
-          <div class="skel-lines">
-            <div class="skel-line w40"></div>
-            <div class="skel-line w60"></div>
-            <div class="skel-line w80"></div>
-          </div>
-        </div>
-      `;
+      container.innerHTML = dzhSkeletonHTML();
 
       try {
-        const res = await fetch('/api/activities');
-        const json = await res.json();
+        var res = await fetch('/api/activities');
+        var json = await res.json();
         if (!json.success) throw new Error('加载失败');
 
-        let acts = json.data || [];
+        var acts = json.data || [];
 
-        // Tab 筛选
-        if (currentTab === 'mine') {
-          acts = acts.filter(a =>
-            a.creator === user.phone || (a.participants && a.participants.includes(user.phone))
-          );
+        // 类型筛选
+        if (filterType) {
+          acts = acts.filter(function(a) { return a.type === filterType; });
         }
 
         // 搜索过滤
         if (searchTerm) {
-          acts = acts.filter(a =>
-            a.title.toLowerCase().includes(searchTerm) ||
-            a.type.toLowerCase().includes(searchTerm) ||
-            a.location.toLowerCase().includes(searchTerm)
-          );
+          acts = acts.filter(function(a) {
+            return a.title.toLowerCase().includes(searchTerm)
+              || a.type.toLowerCase().includes(searchTerm)
+              || a.location.toLowerCase().includes(searchTerm);
+          });
         }
+
+        countEl.textContent = acts.length + '个活动';
 
         if (acts.length === 0) {
           container.innerHTML = '<div class="empty-state">暂无活动 🎉</div>';
           return;
         }
 
-        container.innerHTML = acts.map(a => {
-          const isFull = a.currentParticipants >= a.maxParticipants;
-          const hasJoined = a.participants && a.participants.includes(user.phone);
-          const isCreator = a.creator === user.phone;
-          const ts = getTypeStyle(a.type);
+        container.innerHTML = acts.map(function(a) {
+          var isFull = a.currentParticipants >= a.maxParticipants;
+          var hasJoined = a.participants && a.participants.includes(user.phone);
+          var isCreator = a.creator === user.phone;
+          var ts = dzhGetTypeStyle(a.type);
 
-          let btnHtml = '';
+          var btnHtml = '';
           if (isCreator) {
-            btnHtml = '<button class="join-btn my-activity" disabled>我创建的</button>';
+            btnHtml = '<button class="map-card-join" disabled style="background:#f59e0b;">我创建的</button>';
           } else if (hasJoined) {
-            btnHtml = '<button class="join-btn joined" disabled>已加入 ✓</button>';
+            btnHtml = '<button class="map-card-join joined" disabled>已加入</button>';
           } else if (isFull) {
-            btnHtml = '<button class="join-btn" disabled>已满员</button>';
+            btnHtml = '<button class="map-card-join full" disabled>已满</button>';
           } else {
-            const remaining = a.maxParticipants - a.currentParticipants;
-            btnHtml = `<button class="join-btn" data-id="${escapeHtml(a.id)}"><span>+${remaining}</span> 加入</button>`;
+            btnHtml = '<button class="map-card-join" data-id="' + dzhEscapeHtml(a.id) + '">加入</button>';
           }
 
-          return `
-            <div class="activity-card" data-id="${escapeHtml(a.id)}">
-              <div class="activity-icon" style="background:${ts.bg}; color:${ts.color};">
-                <i class="fas ${ts.icon}"></i>
-              </div>
-              <div class="activity-info">
-                <span class="tag">${escapeHtml(a.type)}</span>
-                <div class="activity-title">${escapeHtml(a.title)}</div>
-                <div class="activity-meta">
-                  <span><i class="far fa-calendar-alt"></i> ${escapeHtml(a.date)}</span>
-                  <span><i class="fas fa-map-marker-alt"></i> ${escapeHtml(a.location)}</span>
-                </div>
-                <div class="activity-bottom">
-                  <span class="people-count">${a.currentParticipants}/${a.maxParticipants}人</span>
-                  ${btnHtml}
-                </div>
-              </div>
-            </div>
-          `;
+          return '<div class="map-activity-card" data-id="' + dzhEscapeHtml(a.id) + '">'
+            + '<div class="map-card-icon" style="background:' + ts.bg + '; color:' + ts.color + ';">'
+              + '<i class="fas ' + ts.icon + '"></i>'
+            + '</div>'
+            + '<div class="map-card-body">'
+              + '<div class="map-card-title">' + dzhEscapeHtml(a.title) + '</div>'
+              + '<div class="map-card-meta">'
+                + '<span><i class="far fa-clock"></i> ' + dzhEscapeHtml(a.date) + '</span>'
+                + '<span><i class="fas fa-map-marker-alt"></i> ' + dzhEscapeHtml(a.location) + '</span>'
+              + '</div>'
+            + '</div>'
+            + '<div class="map-card-right">'
+              + '<span class="map-card-tag">' + dzhEscapeHtml(a.type) + '</span>'
+              + '<span class="map-card-people">' + a.currentParticipants + '/' + a.maxParticipants + '人</span>'
+              + btnHtml
+            + '</div>'
+          + '</div>';
         }).join('');
 
-        // ========== 加入按钮事件 ==========
-        container.querySelectorAll('.join-btn:not([disabled]):not(.joined):not(.my-activity)').forEach(btn => {
-          btn.addEventListener('click', async function (e) {
+        // 加入按钮事件
+        container.querySelectorAll('.map-card-join:not([disabled]):not(.joined):not(.full)').forEach(function(btn) {
+          btn.addEventListener('click', async function(e) {
             e.stopPropagation();
-            const id = this.dataset.id;
+            var id = this.dataset.id;
             this.disabled = true;
-            this.innerHTML = '加入中...';
-
+            this.textContent = '...';
             try {
-              const res = await fetch('/api/activities/' + id + '/join', {
+              var res = await fetch('/api/activities/' + id + '/join', {
                 method: 'POST',
                 headers: { 'Authorization': 'Bearer ' + token }
               });
-              const j = await res.json();
+              var j = await res.json();
               if (j.success) {
                 this.classList.add('joined');
-                this.innerHTML = '已加入 ✓';
-                this.disabled = true;
-                setTimeout(() => loadActivities(), 800);
+                this.textContent = '已加入';
+                setTimeout(function() { loadActivities(); }, 800);
               } else {
-                alert(j.message);
+                dzhToast(j.message, 'error');
                 this.disabled = false;
-                const remaining = this.querySelector('span')?.textContent || '+?';
-                this.innerHTML = `<span>${remaining}</span> 加入`;
+                this.textContent = '加入';
               }
             } catch (err) {
-              alert('网络错误');
+              dzhToast('网络错误', 'error');
               this.disabled = false;
-              this.innerHTML = '<span>+?</span> 加入';
+              this.textContent = '加入';
             }
-          });
-        });
-
-        // 卡片点击跳转到活动详情（暂用 alert）
-        container.querySelectorAll('.activity-card').forEach(card => {
-          card.addEventListener('click', function (e) {
-            if (e.target.closest('button')) return;
-            alert('活动详情页即将上线 🚀');
           });
         });
 
       } catch (err) {
         container.innerHTML = '<div class="empty-state">加载失败，请刷新页面</div>';
+        countEl.textContent = '';
       }
     }
 
     // ========== 初始加载 ==========
     loadActivities();
+
+    // ========== 百度地图接入说明 ==========
+    // 接入步骤：
+    // 1. 在 <head> 中添加：script src="https://api.map.baidu.com/api?v=3.0&ak=你的AK"
+    // 2. 初始化地图：
+    //    document.getElementById('baidu-map').style.display = 'block';
+    //    document.getElementById('map-placeholder').style.display = 'none';
+    //    var map = new BMap.Map('baidu-map');
+    //    var point = new BMap.Point(119.2, 36.8); // 安丘坐标
+    //    map.centerAndZoom(point, 14);
+    //    map.enableScrollWheelZoom(true);
+    // 3. 为每个活动添加标记：
+    //    activities.forEach(function(a) {
+    //      var marker = new BMap.Marker(new BMap.Point(a.lng, a.lat));
+    //      map.addOverlay(marker);
+    //      marker.addEventListener('click', function() { scrollToActivity(a.id); });
+    //    });
   </script>
 </body>
 </html>
